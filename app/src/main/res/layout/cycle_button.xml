@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="100dp"
+    android:layout_height="30dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/cycle_button_decrease_value_label"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:gravity="left|center_vertical"
+            android:paddingLeft="@dimen/cycle_button_arrow_padding"
+            android:text="&lt;"
+            android:textColor="@color/blue_brighter" />
+
+        <TextView
+            android:id="@+id/cycle_button_increase_value_label"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:gravity="right|center_vertical"
+            android:paddingRight="@dimen/cycle_button_arrow_padding"
+            android:text="&gt;"
+            android:textColor="@color/red" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/cycle_button_value_label"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="false"
+        android:gravity="center"
+        android:textColor="@color/gray_darkest"
+        tools:text="Value Here" />
+
+</RelativeLayout>

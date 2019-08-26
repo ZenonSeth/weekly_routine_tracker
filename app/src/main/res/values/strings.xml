@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Weekly Exercise Tracker</string>
+    <string name="title_hint">Title</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="daily">Daily</string>
+    <string name="weekly">Weekly</string>
+    <string name="mon">M</string>
+    <string name="tue">Tu</string>
+    <string name="wed">W</string>
+    <string name="thu">Th</string>
+    <string name="fri">F</string>
+    <string name="sat">Sa</string>
+    <string name="sun">Su</string>
+</resources>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="color_primary">@color/primary</color>
+    <color name="color_primary_dark">@color/primary_dark</color>
+    <color name="color_accent">@color/accent</color>
+    <color name="color_background">@color/gray_brightest</color>
+
+    <color name="primary">@color/blue</color>
+    <color name="primary_dark">@color/blue_dark</color>
+    <color name="primary_light">@color/blue_bright</color>
+    <color name="accent">@color/red</color>
+    <color name="primary_text">@color/gray_darkest</color>
+    <color name="secondary_text">@color/gray_darker</color>
+    <color name="icons">@color/gray_brighter</color>
+    <color name="divider">@color/gray</color>
+
+    <color name="red_brighter">#FF7863</color>
+    <color name="red_bright">#FF5439</color>
+    <color name="red">#FF2300</color>
+    <color name="red_dark">#C51B00</color>
+    <color name="red_darker">#9B1500</color>
+
+    <color name="blue_brighter">#4B9FB7</color>
+    <color name="blue_bright">#2989A4</color>
+    <color name="blue">#057D9F</color>
+    <color name="blue_dark">#04617B</color>
+    <color name="blue_darker">#024B60</color>
+
+    <color name="green_brighter">#50CD76</color>
+    <color name="green_bright">#2BC158</color>
+    <color name="green">#00BD39</color>
+    <color name="green_dark">#00922C</color>
+    <color name="green_darker">#007222</color>
+
+    <color name="yellow_brighter">#FFB263</color>
+    <color name="yellow_bright">#FF9D39</color>
+    <color name="yellow">#FF8100</color>
+    <color name="yellow_dark">#C56300</color>
+    <color name="yellow_darker">#9B4E00</color>
+
+    <color name="red_background_brighter">#804B43</color>
+    <color name="red_background_bright">#5E352F</color>
+    <color name="red_background">#3D211D</color>
+    <color name="red_background_dark">#54241C</color>
+    <color name="red_background_darker">#602115</color>
+
+    <color name="blue_background_brighter">#2B4850</color>
+    <color name="blue_background_bright">#1E343A</color>
+    <color name="blue_background">#132226</color>
+    <color name="blue_background_dark">#132D34</color>
+    <color name="blue_background_darker">#0F323C</color>
+
+    <color name="green_background_brighter">#315F3F</color>
+    <color name="green_background_bright">#23452D</color>
+    <color name="green_background">#152D1C</color>
+    <color name="green_background_dark">#153E21</color>
+    <color name="green_background_darker">#104721</color>
+
+    <color name="yellow_background_brighter">#806243</color>
+    <color name="yellow_background_bright">#5E472F</color>
+    <color name="yellow_background">#3D2D1D</color>
+    <color name="yellow_background_dark">#54381C</color>
+    <color name="yellow_background_darker">#603B15</color>
+
+    <color name="gray_brightest">#F0F0F0</color>
+    <color name="gray_brighter">#CCCCCC</color>
+    <color name="gray_bright">#AAAAAA</color>
+    <color name="gray">#888888</color>
+    <color name="gray_dark">#666666</color>
+    <color name="gray_darker">#444444</color>
+    <color name="gray_darkest">#0F0F0F</color>
+
+</resources>
