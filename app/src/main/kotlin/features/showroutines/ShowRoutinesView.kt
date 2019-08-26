@@ -2,8 +2,10 @@ package features.showroutines
 
 import android.util.Log
 import android.view.ViewGroup
-import androidx.lifecycle.*
-import features.addroutine.AddRoutineIntent
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.Observer
+import androidx.lifecycle.OnLifecycleEvent
 import features.routinesadapter.RoutinesAdapter
 import kotlinx.android.synthetic.main.show_routines_layout.view.*
 import mvi.MviView
@@ -12,7 +14,7 @@ class ShowRoutinesView : MviView<ShowRoutinesIntent, ShowRoutinesViewState>() {
 
     private var fragment: ShowRoutinesFragment? = null
 
-    private val intentData by lazy { MutableLiveData<Pair<ShowRoutinesIntent, ShowRoutinesViewState>>() }
+    private var observer = Observer<Pair<ShowRoutinesIntent, ShowRoutinesViewState>> {}
     private var currentState: ShowRoutinesViewState? = null
     private lateinit var view: ViewGroup
 
@@ -22,7 +24,7 @@ class ShowRoutinesView : MviView<ShowRoutinesIntent, ShowRoutinesViewState>() {
     }
 
     fun sendIntent(intent: ShowRoutinesIntent) {
-        intentData.value = Pair(intent, currentState!!)
+        observer.onChanged(Pair(intent, currentState!!))
     }
 
     private fun onFragmentSet() {
@@ -55,7 +57,7 @@ class ShowRoutinesView : MviView<ShowRoutinesIntent, ShowRoutinesViewState>() {
     }
 
     override fun observeIntent(observer: Observer<Pair<ShowRoutinesIntent, ShowRoutinesViewState>>) {
-        intentData.observe(fragment!!, observer)
+        this.observer = observer
     }
 
     override fun render(state: ShowRoutinesViewState) {
@@ -70,7 +72,9 @@ class ShowRoutinesView : MviView<ShowRoutinesIntent, ShowRoutinesViewState>() {
 
     private fun setupRecyclerView(state: ShowRoutinesViewState) {
         Log.d("MIPE", "MIPE: setting recycler view with state list = ${state.routinesList.routines.size}")
-        view.all_routines_rv.adapter = RoutinesAdapter(fragment!!.context!!, state.routinesList.routines.toList())
+        view.all_routines_rv.adapter =
+                RoutinesAdapter(fragment!!.context!!, state.routinesList.routines.toList())
+                        .also { it.setOnItemLongClickListener { sendIntent(ShowRoutinesIntent.OnItemLongClick(it)) } }
     }
 
 }

@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.*
 import data.RoutineData
-import enums.DayOfWeek.*
+import enums.DayOfWeek
 import enums.RepeatType
 import kotlinx.android.synthetic.main.add_routine_layout.view.*
 import mvi.MviView
@@ -19,7 +19,7 @@ class AddRoutineView
     private lateinit var view: ViewGroup
     private var currentState: AddRoutineViewState? = null
 
-    private val intentData by lazy { MutableLiveData<Pair<AddRoutineIntent, AddRoutineViewState>>() }
+    private var observer = Observer<Pair<AddRoutineIntent, AddRoutineViewState>>{}
 
     fun init(fragment: AddRoutineFragment, routineData: RoutineData? = null) {
         this.fragment = fragment
@@ -28,7 +28,7 @@ class AddRoutineView
     }
 
     fun sendIntent(intent: AddRoutineIntent) {
-        intentData.value = Pair(intent, currentState!!)
+        observer.onChanged(Pair(intent, currentState!!))
     }
 
     private fun onFragmentSet() {
@@ -54,11 +54,22 @@ class AddRoutineView
         view.title_edit_text.addTextChangedListener {
             sendIntent(AddRoutineIntent.TitleChanged(it?.toString() ?: ""))
         }
+        view.mon_cb.setOnCheckedChangeListener { buttonView, isChecked -> onCheckChange(DayOfWeek.Mon, isChecked) }
+        view.tue_cb.setOnCheckedChangeListener { buttonView, isChecked -> onCheckChange(DayOfWeek.Tue, isChecked) }
+        view.wed_cb.setOnCheckedChangeListener { buttonView, isChecked -> onCheckChange(DayOfWeek.Wed, isChecked) }
+        view.thu_cb.setOnCheckedChangeListener { buttonView, isChecked -> onCheckChange(DayOfWeek.Thu, isChecked) }
+        view.fri_cb.setOnCheckedChangeListener { buttonView, isChecked -> onCheckChange(DayOfWeek.Fri, isChecked) }
+        view.sat_cb.setOnCheckedChangeListener { buttonView, isChecked -> onCheckChange(DayOfWeek.Sat, isChecked) }
+        view.sun_cb.setOnCheckedChangeListener { buttonView, isChecked -> onCheckChange(DayOfWeek.Sun, isChecked) }
         render(AddRoutineViewState.Initial)
     }
 
+    private fun onCheckChange(dayOfWeek: DayOfWeek, checked: Boolean) {
+        sendIntent(AddRoutineIntent.DayCheckedChange(dayOfWeek, checked))
+    }
+
     override fun observeIntent(observer: Observer<Pair<AddRoutineIntent, AddRoutineViewState>>) {
-        intentData.observe(fragment!!, observer)
+        this.observer = observer
     }
 
     override fun render(state: AddRoutineViewState) {
@@ -77,20 +88,6 @@ class AddRoutineView
 
                 if (state.daysVisible != currentState?.daysVisible) {
                     view.day_selection_group.visibility = if (state.daysVisible) View.VISIBLE else View.GONE
-                }
-                if (!(state.daysSelected.containsAll(currentState?.daysSelected ?: emptySet())
-                                && currentState?.daysSelected?.containsAll(state.daysSelected) ?: true)) {
-                    state.daysSelected.forEach {
-                        when (it) {
-                            Mon -> view.mon_cb.isChecked = true
-                            Tue -> view.tue_cb.isChecked = true
-                            Wed -> view.wed_cb.isChecked = true
-                            Thu -> view.thu_cb.isChecked = true
-                            Fri -> view.fri_cb.isChecked = true
-                            Sat -> view.sat_cb.isChecked = true
-                            Sun -> view.sun_cb.isChecked = true
-                        }
-                    }
                 }
                 if (state.saveEnabled != currentState?.saveEnabled) {
                     view.save_button.isEnabled = state.saveEnabled

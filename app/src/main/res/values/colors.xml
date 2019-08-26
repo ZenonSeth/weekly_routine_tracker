@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="color_primary">@color/primary</color>
-    <color name="color_primary_dark">@color/primary_dark</color>
+    <color name="color_primary">@color/yellow_brighter</color>
+    <color name="color_primary_dark">@color/yellow_darker</color>
     <color name="color_accent">@color/accent</color>
     <color name="color_background">@color/gray_brightest</color>
 
-    <color name="primary">@color/blue</color>
-    <color name="primary_dark">@color/blue_dark</color>
-    <color name="primary_light">@color/blue_bright</color>
-    <color name="accent">@color/red</color>
+    <color name="primary">@color/yellow_bright</color>
+    <color name="primary_dark">@color/yellow_dark</color>
+    <color name="primary_light">@color/yellow_brighter</color>
+    <color name="accent">@color/red_bright</color>
     <color name="primary_text">@color/gray_darkest</color>
     <color name="secondary_text">@color/gray_darker</color>
     <color name="icons">@color/gray_brighter</color>

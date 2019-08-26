@@ -9,6 +9,7 @@ import javax.inject.Inject
 class ShowRoutinesModel @Inject constructor(
         private val getRoutinesMemory: GetRoutinesMemory,
         private val setRoutinesMemory: SetRoutinesMemory,
+        private val removeRoutineMemory: RemoveRoutineMemory,
         private val readRoutinesFromStorage: ReadRoutinesFromStorage,
         private val writeRoutinesToStorage: WriteRoutinesToStorage,
         private val routinesListToJson: ConvertRoutinesListToJson,
@@ -30,7 +31,13 @@ class ShowRoutinesModel @Inject constructor(
             is ShowRoutinesIntent.OnPausing -> handlePausing()
             is ShowRoutinesIntent.OnShuttingDown -> handleShuttingDown()
             is ShowRoutinesIntent.AddNewRoutine -> handleNewRoutine(state)
+            is ShowRoutinesIntent.OnItemLongClick -> handleItemLongClick(intent)
         }
+    }
+
+    private fun handleItemLongClick(intent: ShowRoutinesIntent.OnItemLongClick) {
+        removeRoutineMemory(intent.data.id)
+        render(ShowRoutinesViewState(getRoutinesMemory()))
     }
 
     private fun handleStartingUp() {
