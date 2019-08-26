@@ -71,6 +71,6 @@ class ResetRoutines @Inject constructor(private val dayOfWeekFromTime: DayOfWeek
             if (data.completedDays.isEmpty()) {
                 data
             } else {
-                data.copy(completedDays = data.completedDays.filter { it != currentDay }.toSet())
+                data.copy(completedDays = data.completedDays.filter { it == currentDay }.toSet())
             }
 }
