@@ -29,12 +29,18 @@ class MainActivity : AppCompatActivity(), INavigationActivity, IActionbarActivit
         if (supportFragmentManager.fragments.size > 0) {
             supportFragmentManager
                     .beginTransaction()
+                    .setCustomAnimations(
+                            R.anim.slide_in_from_bottom, R.anim.fade_out,
+                            R.anim.fade_in, R.anim.slide_out_to_bottom)
                     .replace(R.id.fragment_holder, fragment, tag)
                     .addToBackStack(null)
                     .commit()
         } else {
             supportFragmentManager
                     .beginTransaction()
+                    .setCustomAnimations(
+                            R.anim.slide_in_from_bottom, R.anim.fade_out,
+                            R.anim.fade_in, R.anim.slide_out_to_bottom)
                     .add(R.id.fragment_holder, fragment, tag)
                     .commit()
         }
