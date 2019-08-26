@@ -16,4 +16,6 @@
     <string name="new_routine">New Routine</string>
     <string name="add_routine_title">Add New Routine</string>
     <string name="show_routines_title">All Routines</string>
+    <string name="manage_routines">Manage Routines</string>
+    <string name="daily_routine_title">Today\'s Routine</string>
 </resources>

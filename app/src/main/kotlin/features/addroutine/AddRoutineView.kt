@@ -10,8 +10,7 @@ import enums.RepeatType
 import kotlinx.android.synthetic.main.add_routine_layout.view.*
 import mvi.MviView
 
-class AddRoutineView
-    : MviView<AddRoutineIntent, AddRoutineViewState>() {
+class AddRoutineView : MviView<AddRoutineIntent, AddRoutineViewState>() {
 
     private var fragment: AddRoutineFragment? = null
     private var routineData: RoutineData? = null
@@ -54,13 +53,13 @@ class AddRoutineView
         view.title_edit_text.addTextChangedListener {
             sendIntent(AddRoutineIntent.TitleChanged(it?.toString() ?: ""))
         }
-        view.mon_cb.setOnCheckedChangeListener { buttonView, isChecked -> onCheckChange(DayOfWeek.Mon, isChecked) }
-        view.tue_cb.setOnCheckedChangeListener { buttonView, isChecked -> onCheckChange(DayOfWeek.Tue, isChecked) }
-        view.wed_cb.setOnCheckedChangeListener { buttonView, isChecked -> onCheckChange(DayOfWeek.Wed, isChecked) }
-        view.thu_cb.setOnCheckedChangeListener { buttonView, isChecked -> onCheckChange(DayOfWeek.Thu, isChecked) }
-        view.fri_cb.setOnCheckedChangeListener { buttonView, isChecked -> onCheckChange(DayOfWeek.Fri, isChecked) }
-        view.sat_cb.setOnCheckedChangeListener { buttonView, isChecked -> onCheckChange(DayOfWeek.Sat, isChecked) }
-        view.sun_cb.setOnCheckedChangeListener { buttonView, isChecked -> onCheckChange(DayOfWeek.Sun, isChecked) }
+        view.mon_cb.setOnCheckedChangeListener { _, isChecked -> onCheckChange(DayOfWeek.Mon, isChecked) }
+        view.tue_cb.setOnCheckedChangeListener { _, isChecked -> onCheckChange(DayOfWeek.Tue, isChecked) }
+        view.wed_cb.setOnCheckedChangeListener { _, isChecked -> onCheckChange(DayOfWeek.Wed, isChecked) }
+        view.thu_cb.setOnCheckedChangeListener { _, isChecked -> onCheckChange(DayOfWeek.Thu, isChecked) }
+        view.fri_cb.setOnCheckedChangeListener { _, isChecked -> onCheckChange(DayOfWeek.Fri, isChecked) }
+        view.sat_cb.setOnCheckedChangeListener { _, isChecked -> onCheckChange(DayOfWeek.Sat, isChecked) }
+        view.sun_cb.setOnCheckedChangeListener { _, isChecked -> onCheckChange(DayOfWeek.Sun, isChecked) }
         render(AddRoutineViewState.Initial)
     }
 

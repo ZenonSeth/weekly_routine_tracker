@@ -2,11 +2,10 @@ package features.activity
 
 import android.os.Bundle
 import android.view.MenuItem
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.milchopenchev.weeklyexercisetracker.R
-import features.showroutines.ShowRoutinesFragment
+import features.dailyroutine.DailyRoutineFragment
 
 
 class MainActivity : AppCompatActivity(), INavigationActivity, IActionbarActivity {
@@ -14,7 +13,9 @@ class MainActivity : AppCompatActivity(), INavigationActivity, IActionbarActivit
         super.onCreate(savedInstanceState)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         setContentView(R.layout.main_activity)
-        addFragment(ShowRoutinesFragment(), ShowRoutinesFragment::class.java.simpleName)
+        if (supportFragmentManager.fragments.isEmpty()) {
+            addFragment(DailyRoutineFragment(), DailyRoutineFragment::class.java.simpleName)
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

@@ -7,6 +7,7 @@ import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.Observer
 import androidx.lifecycle.OnLifecycleEvent
 import features.routinesadapter.RoutinesAdapter
+import features.routinesadapter.RoutinesAdapterMode
 import kotlinx.android.synthetic.main.show_routines_layout.view.*
 import mvi.MviView
 
@@ -61,7 +62,7 @@ class ShowRoutinesView : MviView<ShowRoutinesIntent, ShowRoutinesViewState>() {
     }
 
     override fun render(state: ShowRoutinesViewState) {
-        if (state.addNewItent) {
+        if (state.addNewRoutine) {
             fragment?.showNewRoutineFragment()
         } else {
             setupRecyclerView(state)
@@ -73,7 +74,7 @@ class ShowRoutinesView : MviView<ShowRoutinesIntent, ShowRoutinesViewState>() {
     private fun setupRecyclerView(state: ShowRoutinesViewState) {
         Log.d("MIPE", "MIPE: setting recycler view with state list = ${state.routinesList.routines.size}")
         view.all_routines_rv.adapter =
-                RoutinesAdapter(fragment!!.context!!, state.routinesList.routines.toList())
+                RoutinesAdapter(fragment!!.context!!, state.routinesList.routines.toList(), RoutinesAdapterMode.AllDisplay)
                         .also { it.setOnItemLongClickListener { sendIntent(ShowRoutinesIntent.OnItemLongClick(it)) } }
     }
 

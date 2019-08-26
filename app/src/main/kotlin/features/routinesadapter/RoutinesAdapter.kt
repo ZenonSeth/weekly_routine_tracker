@@ -1,12 +1,19 @@
 package features.routinesadapter
 
 import android.content.Context
-import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import data.RoutineData
 
-class RoutinesAdapter(private val context: Context, private val data: List<RoutineData>) :
+
+enum class RoutinesAdapterMode {
+    AllDisplay, DailyDisplay
+}
+
+class RoutinesAdapter(
+        private val context: Context,
+        private val data: List<RoutineData>,
+        private val mode: RoutinesAdapterMode) :
         RecyclerView.Adapter<RoutinesViewHolder>() {
 
     override fun getItemCount(): Int = data.size
@@ -14,7 +21,7 @@ class RoutinesAdapter(private val context: Context, private val data: List<Routi
     private var onLongClickListener: (RoutineData) -> Unit = {}
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RoutinesViewHolder =
-            RoutinesViewHolder(context, parent).also { viewHolder ->
+            RoutinesViewHolder(context, parent, mode).also { viewHolder ->
                 viewHolder.setListeners({ onClickListener(it) }, { onLongClickListener(it) })
             }
 
