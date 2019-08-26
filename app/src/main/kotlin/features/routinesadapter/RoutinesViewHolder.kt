@@ -15,7 +15,7 @@ import usecase.DayOfWeekFromTime
 
 private fun CheckBox.setCheckedIfDifferent(checked: Boolean) {
     if (isChecked != checked) {
-        isChecked = checked
+        toggle()
     }
 }
 
