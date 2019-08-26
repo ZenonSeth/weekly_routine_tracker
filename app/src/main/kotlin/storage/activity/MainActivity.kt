@@ -1,6 +1,6 @@
-package activity
+package storage.activity
 
-import addroutine.AddRoutineFragment
+import features.addroutine.AddRoutineFragment
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment

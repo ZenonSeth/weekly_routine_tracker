@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -39,57 +38,57 @@
                 android:text="@string/weekly" />
     </RadioGroup>
 
-    <RadioGroup
-            android:id="@+id/day_select_radio_group"
+    <LinearLayout
+            android:id="@+id/day_selection_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+
             android:orientation="horizontal"
-            android:layout_margin="@dimen/spacing_m"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/repeat_type_radio_group">
 
-        <RadioButton
-                android:id="@+id/mon_rb"
+        <CheckBox
+                android:id="@+id/mon_cb"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/mon" />
 
-        <RadioButton
-                android:id="@+id/tue_rb"
+        <CheckBox
+                android:id="@+id/tue_cb"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/tue" />
 
-        <RadioButton
-                android:id="@+id/wed_rb"
+        <CheckBox
+                android:id="@+id/wed_cb"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/wed" />
 
-        <RadioButton
-                android:id="@+id/thu_rb"
+        <CheckBox
+                android:id="@+id/thu_cb"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/thu" />
 
-        <RadioButton
-                android:id="@+id/fri_rb"
+        <CheckBox
+                android:id="@+id/fri_cb"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/fri" />
 
-        <RadioButton
-                android:id="@+id/sat_rb"
+        <CheckBox
+                android:id="@+id/sat_cb"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/sat" />
 
-        <RadioButton
-                android:id="@+id/sun_rb"
+        <CheckBox
+                android:id="@+id/sun_cb"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/sun" />
-    </RadioGroup>
+    </LinearLayout>
 
     <Button
             android:id="@+id/save_button"
@@ -99,7 +98,7 @@
             android:text="@string/save"
             app:layout_constraintEnd_toStartOf="@id/cancel_button"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/day_select_radio_group" />
+            app:layout_constraintTop_toBottomOf="@id/day_selection_group" />
 
     <Button
             android:id="@+id/cancel_button"
@@ -109,6 +108,6 @@
             android:text="@string/cancel"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/save_button"
-            app:layout_constraintTop_toBottomOf="@id/day_select_radio_group" />
+            app:layout_constraintTop_toBottomOf="@id/day_selection_group" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

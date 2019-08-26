@@ -1,10 +1,10 @@
-package addroutine
+package features.addroutine
 
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.widget.addTextChangedListener
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
+import androidx.lifecycle.*
+import data.RoutineData
 import enums.DayOfWeek.*
 import enums.RepeatType
 import kotlinx.android.synthetic.main.add_routine_layout.view.*
@@ -13,18 +13,27 @@ import mvi.MviView
 class AddRoutineView
     : MviView<AddRoutineIntent, AddRoutineViewState>() {
 
-    var fragment: AddRoutineFragment? = null
-        set(value) {
-            field = value
-            onFragmentSet()
-        }
+    private var fragment: AddRoutineFragment? = null
+    private var routineData: RoutineData? = null
 
     private val view: ViewGroup by lazy { fragment?.view as ViewGroup }
     private var currentState: AddRoutineViewState? = null
 
     private val intentData by lazy { MutableLiveData<AddRoutineIntent>() }
 
+    fun init(fragment: AddRoutineFragment, routineData: RoutineData? = null) {
+        this.fragment = fragment
+        this.routineData = routineData
+        onFragmentSet()
+    }
+
     private fun onFragmentSet() {
+        fragment?.lifecycle?.addObserver(object : LifecycleObserver {
+            @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+            fun onPause() {
+                intentData.value = AddRoutineIntent.OnUserLeaving
+            }
+        })
         view.daily_radio_button.setOnClickListener {
             intentData.value = AddRoutineIntent.RepeatTypeChanged(RepeatType.Daily)
         }
@@ -62,19 +71,19 @@ class AddRoutineView
                 }
 
                 if (state.daysVisible != currentState?.daysVisible) {
-                    view.day_select_radio_group.visibility = if (state.daysVisible) View.VISIBLE else View.GONE
+                    view.day_selection_group.visibility = if (state.daysVisible) View.VISIBLE else View.GONE
                 }
                 if (!(state.daysSelected.containsAll(currentState?.daysSelected ?: emptySet())
-                        && currentState?.daysSelected?.containsAll(state.daysSelected) ?: true)) {
+                                && currentState?.daysSelected?.containsAll(state.daysSelected) ?: true)) {
                     state.daysSelected.forEach {
                         when (it) {
-                            Mon -> view.mon_rb.isChecked = true
-                            Tue -> view.tue_rb.isChecked = true
-                            Wed -> view.wed_rb.isChecked = true
-                            Thu -> view.thu_rb.isChecked = true
-                            Fri -> view.fri_rb.isChecked = true
-                            Sat -> view.sat_rb.isChecked = true
-                            Sun -> view.sun_rb.isChecked = true
+                            Mon -> view.mon_cb.isChecked = true
+                            Tue -> view.tue_cb.isChecked = true
+                            Wed -> view.wed_cb.isChecked = true
+                            Thu -> view.thu_cb.isChecked = true
+                            Fri -> view.fri_cb.isChecked = true
+                            Sat -> view.sat_cb.isChecked = true
+                            Sun -> view.sun_cb.isChecked = true
                         }
                     }
                 }

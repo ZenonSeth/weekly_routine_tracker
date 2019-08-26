@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion 28
@@ -23,6 +24,10 @@ android {
     }
 }
 
+kapt {
+    generateStubs = true
+}
+
 repositories {
     mavenCentral()
 }
@@ -41,8 +46,10 @@ dependencies {
     implementation "androidx.activity:activity-ktx:$activity_version"
 
     // Dagger
-    annotationProcessor "com.google.dagger:dagger-android-processor:$dagger_version"
     annotationProcessor "com.google.dagger:dagger-compiler:$dagger_version"
-    implementation "com.google.dagger:dagger:$project.dagger_version"
-    implementation "com.google.dagger:dagger-android:$project.dagger_version"
+    annotationProcessor "com.google.dagger:dagger-android-processor:$dagger_version"
+    kapt "com.google.dagger:dagger-compiler:$dagger_version"
+    api "com.google.dagger:dagger:$dagger_version"
+    api "com.google.dagger:dagger-android:$dagger_version"
+    api "com.google.dagger:dagger-android-support:$dagger_version"
 }

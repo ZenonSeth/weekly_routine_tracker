@@ -1,4 +1,4 @@
-package addroutine
+package features.addroutine
 
 import enums.DayOfWeek
 import enums.RepeatType
