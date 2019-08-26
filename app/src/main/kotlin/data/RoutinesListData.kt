@@ -1,30 +1,21 @@
 package data
 
 import enums.DayOfWeek
+import enums.RepeatType
 
-sealed class RoutineData(val id: Long)
-
-data class DailyRoutineData(
+data class RoutineData(
+        val id: Long,
         val description: String,
-        val completed: Boolean,
-        val lastCompletedTimestamp: Long,
-        private val _id: Long
-) : RoutineData(_id) {
+        val type: RepeatType,
+        val completed: Boolean = false,
+        val days: Set<DayOfWeek> = emptySet(),
+        val completedDays: Set<DayOfWeek> = emptySet(),
+        val lastCompletedTimestamp: Long = 0L) {
+    constructor() : this(0, "", RepeatType.Daily)
     override fun hashCode(): Int = id.toInt()
-    override fun equals(other: Any?): Boolean = if (other is DailyRoutineData) id == other.id else false
+    override fun equals(other: Any?): Boolean = if (other is RoutineData) id == other.id else false
 }
 
-data class WeeklyRoutineData(
-        val description: String,
-        val days: Set<DayOfWeek>,
-        val completedDays: Set<DayOfWeek>,
-        val lastCompletedTimestamp: Long,
-        private val _id: Long
-) : RoutineData(_id) {
-    override fun hashCode(): Int = id.toInt()
-    override fun equals(other: Any?): Boolean = if (other is DailyRoutineData) id == other.id else false
+data class RoutinesListData(val routines: Set<RoutineData>) {
+    constructor() : this(emptySet())
 }
-
-data class RoutinesListData(
-        val routines: Set<RoutineData>
-)

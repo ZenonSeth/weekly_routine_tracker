@@ -16,10 +16,10 @@ class AddRoutineView
     private var fragment: AddRoutineFragment? = null
     private var routineData: RoutineData? = null
 
-    private val view: ViewGroup by lazy { fragment?.view as ViewGroup }
+    private lateinit var view: ViewGroup
     private var currentState: AddRoutineViewState? = null
 
-    private val intentData by lazy { MutableLiveData<AddRoutineIntent>() }
+    private val intentData by lazy { MutableLiveData<Pair<AddRoutineIntent, AddRoutineViewState>>() }
 
     fun init(fragment: AddRoutineFragment, routineData: RoutineData? = null) {
         this.fragment = fragment
@@ -27,33 +27,38 @@ class AddRoutineView
         onFragmentSet()
     }
 
+    fun sendIntent(intent: AddRoutineIntent) {
+        intentData.value = Pair(intent, currentState!!)
+    }
+
     private fun onFragmentSet() {
+        view = fragment!!.view as ViewGroup
         fragment?.lifecycle?.addObserver(object : LifecycleObserver {
             @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
             fun onPause() {
-                intentData.value = AddRoutineIntent.OnUserLeaving
+                sendIntent(AddRoutineIntent.OnUserLeaving)
             }
         })
         view.daily_radio_button.setOnClickListener {
-            intentData.value = AddRoutineIntent.RepeatTypeChanged(RepeatType.Daily)
+            sendIntent(AddRoutineIntent.RepeatTypeChanged(RepeatType.Daily))
         }
         view.weekly_radio_button.setOnClickListener {
-            intentData.value = AddRoutineIntent.RepeatTypeChanged(RepeatType.Weekly)
+            sendIntent(AddRoutineIntent.RepeatTypeChanged(RepeatType.Weekly))
         }
         view.save_button.setOnClickListener {
-            intentData.value = AddRoutineIntent.SaveClicked
+            sendIntent(AddRoutineIntent.SaveClicked)
         }
         view.cancel_button.setOnClickListener {
-            intentData.value = AddRoutineIntent.CancelledClicked
+            sendIntent(AddRoutineIntent.CancelledClicked)
         }
         view.title_edit_text.addTextChangedListener {
-            intentData.value = (AddRoutineIntent.TitleChanged(it?.toString() ?: ""))
+            sendIntent(AddRoutineIntent.TitleChanged(it?.toString() ?: ""))
         }
         render(AddRoutineViewState.Initial)
     }
 
-    override fun observeIntent(observer: (AddRoutineIntent, AddRoutineViewState) -> Unit) {
-        intentData.observe(fragment!!, Observer { observer(it, currentState!!) })
+    override fun observeIntent(observer: Observer<Pair<AddRoutineIntent, AddRoutineViewState>>) {
+        intentData.observe(fragment!!, observer)
     }
 
     override fun render(state: AddRoutineViewState) {

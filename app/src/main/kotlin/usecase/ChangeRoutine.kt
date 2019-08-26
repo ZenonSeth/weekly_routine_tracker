@@ -1,7 +1,6 @@
 package usecase
 
-import data.DailyRoutineData
-import data.WeeklyRoutineData
+import enums.RepeatType
 import storage.RoutineMemoryStore
 import javax.inject.Inject
 
@@ -15,10 +14,10 @@ class CompleteRoutine @Inject constructor(
                 .firstOrNull { it.id == routineId }
                 ?.let {
                     routineMemoryStore.putRoutine(
-                            when (it) {
-                                is DailyRoutineData ->
+                            when (it.type) {
+                                RepeatType.Daily ->
                                     it.copy(completed = true, lastCompletedTimestamp = timeCompleted)
-                                is WeeklyRoutineData ->
+                                RepeatType.Weekly ->
                                     it.copy(
                                             completedDays = it.completedDays.plus(dayOfWeekFromTime(timeCompleted)),
                                             lastCompletedTimestamp = timeCompleted)

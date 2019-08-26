@@ -14,6 +14,4 @@ data class AddRoutineViewState(
     companion object {
         val Initial = AddRoutineViewState("", RepeatType.Daily, false, emptySet(), false)
     }
-
-
 }

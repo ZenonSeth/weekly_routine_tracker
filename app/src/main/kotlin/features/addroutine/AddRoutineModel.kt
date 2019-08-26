@@ -1,37 +1,37 @@
 package features.addroutine
 
-import data.DailyRoutineData
+import androidx.lifecycle.Observer
 import data.RoutineData
-import data.WeeklyRoutineData
 import enums.RepeatType
 import mvi.MviModel
 import mvi.MviView
 import usecase.ConvertRoutinesListToJson
-import usecase.GetRoutines
-import usecase.PutRoutine
+import usecase.GetRoutinesMemory
+import usecase.PutRoutineMemory
 import usecase.WriteRoutinesToStorage
 import javax.inject.Inject
 
 class AddRoutineModel @Inject constructor(
-        private val putRoutine: PutRoutine,
-        private val getRoutines: GetRoutines,
+        private val putRoutineMemory: PutRoutineMemory,
+        private val getRoutinesMemory: GetRoutinesMemory,
         private val convertRoutinesToJson: ConvertRoutinesListToJson,
-        private val saveRoutines: WriteRoutinesToStorage)
+        private val writeRoutinesToStorage: WriteRoutinesToStorage)
     : MviModel<AddRoutineIntent, AddRoutineViewState>() {
 
     private var render: (AddRoutineViewState) -> Unit = {}
     private var idCount = 0L
+    private val observer = Observer<Pair<AddRoutineIntent, AddRoutineViewState>> { handleIntent(it.first, it.second) }
 
     override fun attachViewModel(viewModel: MviView<AddRoutineIntent, AddRoutineViewState>) {
-        viewModel.observeIntent(::handleIntent)
-        render = { viewModel.render(it) }
+        viewModel.observeIntent(observer)
+        render = viewModel::render
     }
 
     private fun handleIntent(intent: AddRoutineIntent, state: AddRoutineViewState) {
         when (intent) {
             AddRoutineIntent.SaveClicked -> handleSaveRoutine(state)
             AddRoutineIntent.CancelledClicked -> render(state.copy(finished = true))
-            AddRoutineIntent.OnUserLeaving -> handleUserLeft(state)
+            AddRoutineIntent.OnUserLeaving -> handleUserLeft()
             is AddRoutineIntent.TitleChanged -> handleTitleChanged(intent, state)
             is AddRoutineIntent.RepeatTypeChanged -> handleRepeatTypeChange(intent, state)
         }
@@ -49,31 +49,26 @@ class AddRoutineModel @Inject constructor(
             render(state.copy(title = intent.title, saveEnabled = intent.title.isNotEmpty()))
 
     private fun handleSaveRoutine(state: AddRoutineViewState) {
-        putRoutine(getNewRoutineData(state))
+        putRoutineMemory(getNewRoutineData(state))
         render(state.copy(finished = true))
     }
 
-    private fun handleUserLeft(state: AddRoutineViewState) {
-        saveRoutines(convertRoutinesToJson(getRoutines()))
+    private fun handleUserLeft() {
+        writeRoutinesToStorage(convertRoutinesToJson(getRoutinesMemory()))
     }
 
     private fun getNewRoutineData(state: AddRoutineViewState): RoutineData =
             when (state.repeatType) {
                 RepeatType.Daily ->
-                    DailyRoutineData(
-                            state.title,
-                            false,
-                            0L,
-                            generateNewId()
-                    )
+                    RoutineData(
+                            id = generateNewId(),
+                            description = state.title,
+                            type = RepeatType.Daily)
                 RepeatType.Weekly ->
-                    WeeklyRoutineData(
-                            state.title,
-                            state.daysSelected,
-                            emptySet(),
-                            0L,
-                            generateNewId()
-                    )
+                    RoutineData(
+                            id = generateNewId(),
+                            description = state.title,
+                            type = RepeatType.Weekly)
             }
 
     private fun generateNewId(): Long {

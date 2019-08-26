@@ -5,11 +5,12 @@ import com.google.gson.JsonSyntaxException
 import data.RoutinesListData
 import javax.inject.Inject
 
-class ConvertJsontoRoutinesList @Inject constructor() {
+class ConvertJsonToRoutinesList @Inject constructor() {
     operator fun invoke(jsonString: String): RoutinesListData =
             try {
                 Gson().fromJson<RoutinesListData>(jsonString, RoutinesListData::class.java)
-            } catch (ingored: JsonSyntaxException) {
+            } catch (ignored: Exception) {
+                ignored.printStackTrace()
                 RoutinesListData(emptySet())
             }
 }

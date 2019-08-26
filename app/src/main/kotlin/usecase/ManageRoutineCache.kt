@@ -5,18 +5,25 @@ import data.RoutinesListData
 import storage.RoutineMemoryStore
 import javax.inject.Inject
 
-class PutRoutine @Inject constructor(private val store: RoutineMemoryStore) {
+class PutRoutineMemory @Inject constructor(private val store: RoutineMemoryStore) {
     operator fun invoke(routine: RoutineData): Unit =
             store.putRoutine(routine)
 }
 
-class GetRoutines @Inject constructor(private val store: RoutineMemoryStore) {
+class GetRoutinesMemory @Inject constructor(private val store: RoutineMemoryStore) {
     operator fun invoke(): RoutinesListData =
             store.getRoutinesData()
 }
 
-class RemoveRoutine @Inject constructor(private val store: RoutineMemoryStore) {
+class RemoveRoutineMemory @Inject constructor(private val store: RoutineMemoryStore) {
     operator fun invoke(routineId: Long): Unit =
             store.removeRoutine(routineId)
 }
 
+class ClearRoutionesMemory @Inject constructor(private val store: RoutineMemoryStore) {
+    operator fun invoke() = store.clear()
+}
+
+class SetRoutinesMemory @Inject constructor(private val store: RoutineMemoryStore) {
+    operator fun invoke(routineData: RoutinesListData) = store.set(routineData)
+}

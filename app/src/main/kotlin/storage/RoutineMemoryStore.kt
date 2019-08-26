@@ -21,4 +21,12 @@ class RoutineMemoryStore @Inject constructor() {
                     .firstOrNull { it.id == id }
                     ?.let { data = data.copy(routines = data.routines.minus(it)) }
                     ?: Unit
+
+    fun clear() {
+        data = RoutinesListData(emptySet())
+    }
+
+    fun set(routineData: RoutinesListData) {
+        data = routineData
+    }
 }

@@ -1,4 +1,4 @@
-package storage.activity
+package features.activity
 
 import androidx.fragment.app.Fragment
 

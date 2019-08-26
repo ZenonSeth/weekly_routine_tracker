@@ -14,9 +14,7 @@ class ReadRoutinesFromStorage @Inject constructor(private val storageAccess: Int
 
 class WriteRoutinesToStorage @Inject constructor(private val storageAccess: InternalStorage) {
     operator fun invoke(routinesString: String) =
-            thread(start = true) {
-                storageAccess.writeToFile(ROUTINES_FILENAME, routinesString)
-            }
+            storageAccess.writeToFile(ROUTINES_FILENAME, routinesString)
 }
 
 class ClearRoutinesStorage @Inject constructor(private val storageAccess: InternalStorage) {

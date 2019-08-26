@@ -12,4 +12,8 @@
     <string name="fri">F</string>
     <string name="sat">Sa</string>
     <string name="sun">Su</string>
+    <string name="all_routines">All Routines</string>
+    <string name="new_routine">New Routine</string>
+    <string name="add_routine_title">Add New Routine</string>
+    <string name="show_routines_title">All Routines</string>
 </resources>
