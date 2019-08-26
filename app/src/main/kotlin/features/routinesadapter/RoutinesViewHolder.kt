@@ -12,13 +12,7 @@ import enums.DayOfWeek
 import enums.RepeatType
 import kotlinx.android.synthetic.main.routine_list_item.view.*
 import usecase.DayOfWeekFromTime
-
-private fun CheckBox.setCheckedIfDifferent(checked: Boolean) {
-    if (isChecked != checked) {
-        toggle()
-    }
-}
-
+import util.setCheckedIfDifferent
 
 class RoutinesViewHolder(val context: Context, parent: ViewGroup, val mode: RoutinesAdapterMode)
     : RecyclerView.ViewHolder(

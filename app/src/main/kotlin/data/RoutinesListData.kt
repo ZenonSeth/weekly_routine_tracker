@@ -12,6 +12,7 @@ data class RoutineData(
         val completedDays: Set<DayOfWeek> = emptySet(),
         val lastCompletedTimestamp: Long = 0L) {
     constructor() : this(0, "", RepeatType.Daily)
+
     override fun hashCode(): Int = id.toInt()
     override fun equals(other: Any?): Boolean = if (other is RoutineData) id == other.id else false
 }

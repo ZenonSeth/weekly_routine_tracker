@@ -9,4 +9,5 @@ sealed class ShowRoutinesIntent {
     object OnShuttingDown : ShowRoutinesIntent()
     object AddNewRoutine : ShowRoutinesIntent()
     class OnItemLongClick(val data: RoutineData) : ShowRoutinesIntent()
+    class OnItemClick(val data: RoutineData) : ShowRoutinesIntent()
 }

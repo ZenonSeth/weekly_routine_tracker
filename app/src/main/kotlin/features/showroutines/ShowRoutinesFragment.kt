@@ -10,11 +10,13 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.milchopenchev.weeklyexercisetracker.R
+import data.RoutineData
 import features.activity.IActionbarActivity
 import features.activity.INavigationActivity
 import features.addroutine.AddRoutineFragment
 import kotlinx.android.synthetic.main.show_routines_layout.view.*
 import util.getApplicationComponent
+import util.putObjectJson
 import javax.inject.Inject
 
 class ShowRoutinesFragment(@LayoutRes contentLayoutId: Int) : Fragment(contentLayoutId) {
@@ -47,7 +49,15 @@ class ShowRoutinesFragment(@LayoutRes contentLayoutId: Int) : Fragment(contentLa
         (context as? IActionbarActivity)?.setActionbarTitle(resources.getString(R.string.show_routines_title))
     }
 
-    fun showNewRoutineFragment() {
-        (context as? INavigationActivity)?.addFragment(AddRoutineFragment(), AddRoutineFragment::class.java.simpleName)
+    fun showNewRoutineFragment(routine: RoutineData? = null) {
+        (context as? INavigationActivity)
+                ?.addFragment(getRoutineFragment(routine), AddRoutineFragment::class.java.simpleName)
     }
+
+    private fun getRoutineFragment(routine: RoutineData?): Fragment =
+            AddRoutineFragment().also { fragment ->
+                routine?.let {
+                    fragment.arguments = Bundle().also { it.putObjectJson(AddRoutineFragment.ROUTINE_DATA, routine) }
+                }
+            }
 }

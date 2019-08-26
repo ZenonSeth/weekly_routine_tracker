@@ -9,6 +9,7 @@ import enums.DayOfWeek
 import enums.RepeatType
 import kotlinx.android.synthetic.main.add_routine_layout.view.*
 import mvi.MviView
+import util.setCheckedIfDifferent
 
 class AddRoutineView : MviView<AddRoutineIntent, AddRoutineViewState>() {
 
@@ -84,7 +85,17 @@ class AddRoutineView : MviView<AddRoutineIntent, AddRoutineViewState>() {
                         RepeatType.Weekly -> view.weekly_radio_button.isChecked = true
                     }
                 }
-
+                DayOfWeek.values().forEach {
+                    when (it) {
+                        DayOfWeek.Mon -> view.mon_cb.setCheckedIfDifferent(state.daysSelected.contains(it))
+                        DayOfWeek.Tue -> view.tue_cb.setCheckedIfDifferent(state.daysSelected.contains(it))
+                        DayOfWeek.Wed -> view.wed_cb.setCheckedIfDifferent(state.daysSelected.contains(it))
+                        DayOfWeek.Thu -> view.thu_cb.setCheckedIfDifferent(state.daysSelected.contains(it))
+                        DayOfWeek.Fri -> view.fri_cb.setCheckedIfDifferent(state.daysSelected.contains(it))
+                        DayOfWeek.Sat -> view.sat_cb.setCheckedIfDifferent(state.daysSelected.contains(it))
+                        DayOfWeek.Sun -> view.sun_cb.setCheckedIfDifferent(state.daysSelected.contains(it))
+                    }
+                }
                 if (state.daysVisible != currentState?.daysVisible) {
                     view.day_selection_group.visibility = if (state.daysVisible) View.VISIBLE else View.GONE
                 }

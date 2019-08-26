@@ -8,14 +8,20 @@ import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import com.milchopenchev.weeklyexercisetracker.R
+import data.RoutineData
 import features.activity.IActionbarActivity
 import features.activity.INavigationActivity
 import util.getApplicationComponent
+import util.getJsonObject
 import javax.inject.Inject
 
 
 class AddRoutineFragment(@LayoutRes contentLayoutId: Int) : Fragment(contentLayoutId) {
     constructor() : this(0)
+
+    companion object {
+        const val ROUTINE_DATA = "routine_data"
+    }
 
     @Inject
     lateinit var mviModel: AddRoutineModel
@@ -36,6 +42,9 @@ class AddRoutineFragment(@LayoutRes contentLayoutId: Int) : Fragment(contentLayo
         mviView = ViewModelProviders.of(this).get(AddRoutineView::class.java)
         mviView.init(this)
         mviModel.attachViewModel(mviView)
+        arguments
+                ?.getJsonObject(ROUTINE_DATA, RoutineData::class.java)
+                ?.let { mviModel.setRoutineData(it) }
     }
 
     override fun onResume() {

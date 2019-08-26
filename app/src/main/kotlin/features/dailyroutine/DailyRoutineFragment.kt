@@ -14,7 +14,6 @@ import features.activity.IActionbarActivity
 import features.activity.INavigationActivity
 import features.showroutines.ShowRoutinesFragment
 import kotlinx.android.synthetic.main.daily_routine_layout.view.*
-import kotlinx.android.synthetic.main.show_routines_layout.view.*
 import util.getApplicationComponent
 import javax.inject.Inject
 

@@ -32,12 +32,17 @@ class ShowRoutinesModel @Inject constructor(
             is ShowRoutinesIntent.OnShuttingDown -> handleShuttingDown()
             is ShowRoutinesIntent.AddNewRoutine -> handleNewRoutine(state)
             is ShowRoutinesIntent.OnItemLongClick -> handleItemLongClick(intent)
+            is ShowRoutinesIntent.OnItemClick ->  handleItemClick(intent, state)
         }
     }
 
     private fun handleItemLongClick(intent: ShowRoutinesIntent.OnItemLongClick) {
         removeRoutineMemory(intent.data.id)
         render(ShowRoutinesViewState(getRoutinesMemory()))
+    }
+
+    private fun handleItemClick(intent: ShowRoutinesIntent.OnItemClick, state: ShowRoutinesViewState) {
+        render(ShowRoutinesViewState(routinesList = state.routinesList, editRoutine = intent.data))
     }
 
     private fun handleStartingUp() {

@@ -18,6 +18,7 @@ class AddRoutineModel @Inject constructor(
         private val writeRoutinesToStorage: WriteRoutinesToStorage)
     : MviModel<AddRoutineIntent, AddRoutineViewState>() {
 
+    private var routineData: RoutineData? = null
     private var render: (AddRoutineViewState) -> Unit = {}
     private var idCount = 0L
     private val observer = Observer<Pair<AddRoutineIntent, AddRoutineViewState>> { handleIntent(it.first, it.second) }
@@ -25,6 +26,18 @@ class AddRoutineModel @Inject constructor(
     override fun attachViewModel(viewModel: MviView<AddRoutineIntent, AddRoutineViewState>) {
         viewModel.observeIntent(observer)
         render = viewModel::render
+        renderImportedRoutineData()
+    }
+
+    private fun renderImportedRoutineData() {
+        routineData?.let { data ->
+            render(AddRoutineViewState(
+                    data.description,
+                    data.type,
+                    data.type == RepeatType.Weekly,
+                    data.days,
+                    true))
+        }
     }
 
     private fun handleIntent(intent: AddRoutineIntent, state: AddRoutineViewState) {
@@ -90,6 +103,11 @@ class AddRoutineModel @Inject constructor(
             }
 
     private fun generateNewId(): Long {
-        return System.currentTimeMillis() + idCount.also { idCount++ }
+        return routineData?.id ?: System.currentTimeMillis() + idCount.also { idCount++ }
+    }
+
+    fun setRoutineData(routineData: RoutineData) {
+        this.routineData = routineData
+        renderImportedRoutineData()
     }
 }
