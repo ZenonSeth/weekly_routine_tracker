@@ -1,10 +1,11 @@
 package features.dailyroutine
 
-import androidx.lifecycle.Observer
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import data.RoutinesListData
 import mvi.MviModel
-import mvi.MviView
 import usecase.*
+import util.emit
 import javax.inject.Inject
 
 class DailyRoutineModel @Inject constructor(
@@ -21,21 +22,16 @@ class DailyRoutineModel @Inject constructor(
         private val resetRoutines: ResetRoutines)
     : MviModel<DailyRoutineViewIntent, DailyRoutineViewState>() {
 
-    private var render: (DailyRoutineViewState) -> Unit = {}
-    private val observer =
-            Observer<Pair<DailyRoutineViewIntent, DailyRoutineViewState>> { handleIntent(it.first, it.second) }
+    private val newStateData = MutableLiveData<DailyRoutineViewState>()
+    override val stateData: LiveData<DailyRoutineViewState>
+        get() = newStateData
 
-    override fun attachViewModel(viewModel: MviView<DailyRoutineViewIntent, DailyRoutineViewState>) {
-        viewModel.observeIntent(observer)
-        render = viewModel::render
-    }
-
-    private fun handleIntent(intent: DailyRoutineViewIntent, state: DailyRoutineViewState) {
+    override fun handleIntent(intent: DailyRoutineViewIntent, currentState: DailyRoutineViewState?) {
         when (intent) {
             DailyRoutineViewIntent.OnStartingUp -> handleStartingUp()
             DailyRoutineViewIntent.OnShuttingDown -> handleShuttingDown()
             DailyRoutineViewIntent.OnResuming -> handleOnResuming()
-            DailyRoutineViewIntent.ManageButtonClick -> handleManageButtonClick(state)
+            DailyRoutineViewIntent.ManageButtonClick -> handleManageButtonClick(currentState!!)
             is DailyRoutineViewIntent.ItemClicked -> handleItemClicked(intent)
         }
     }
@@ -52,16 +48,16 @@ class DailyRoutineModel @Inject constructor(
     }
 
     private fun handleOnResuming() {
-        render(DailyRoutineViewState(applyFilter(getRoutinesMemory())))
+        newStateData.emit { (DailyRoutineViewState(applyFilter(getRoutinesMemory()))) }
     }
 
     private fun handleManageButtonClick(state: DailyRoutineViewState) {
-        render(DailyRoutineViewState(state.routinesList, true))
+        newStateData.emit { (DailyRoutineViewState(state.routinesList, true)) }
     }
 
     private fun handleItemClicked(intent: DailyRoutineViewIntent.ItemClicked) {
         putRoutineMemory(completeRoutineToggle(intent.data, System.currentTimeMillis()))
-        render(DailyRoutineViewState(applyFilter(getRoutinesMemory())))
+        newStateData.emit { (DailyRoutineViewState(applyFilter(getRoutinesMemory()))) }
     }
 
     private fun applyFilter(data: RoutinesListData) =

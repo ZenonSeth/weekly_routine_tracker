@@ -6,11 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.Observer
-import androidx.lifecycle.OnLifecycleEvent
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.milchopenchev.weeklyexercisetracker.R
@@ -28,15 +24,16 @@ import javax.inject.Inject
 
 class ShowRoutinesFragment(@LayoutRes contentLayoutId: Int)
     : Fragment(contentLayoutId),
-    MviView<ShowRoutinesIntent, ShowRoutinesViewState> {
+        MviView<ShowRoutinesIntent, ShowRoutinesViewState> {
     constructor() : this(0)
 
     @Inject
     lateinit var mviModel: ShowRoutinesModel
-    private var observer = Observer<Pair<ShowRoutinesIntent, ShowRoutinesViewState>> {}
 
     private lateinit var viewModel: ShowRoutinesAndroidViewModel
     private lateinit var mView: View
+    private val renderer = Observer<ShowRoutinesViewState> { ignoreIntents = true; render(it); ignoreIntents = false }
+    private var ignoreIntents = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,7 +49,7 @@ class ShowRoutinesFragment(@LayoutRes contentLayoutId: Int)
         mView = view
         view.all_routines_rv.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
         viewModel = ViewModelProviders.of(this).get(ShowRoutinesAndroidViewModel::class.java)
-        mviModel.attachViewModel(this)
+        mviModel.stateData.observe(this, renderer)
         initIntentListeners()
         render(ShowRoutinesViewState.Initial)
     }
@@ -90,11 +87,9 @@ class ShowRoutinesFragment(@LayoutRes contentLayoutId: Int)
     }
 
     fun sendIntent(intent: ShowRoutinesIntent) {
-        observer.onChanged(Pair(intent, viewModel.currentState!!))
-    }
-
-    override fun observeIntent(observer: Observer<Pair<ShowRoutinesIntent, ShowRoutinesViewState>>) {
-        this.observer = observer
+        if (!ignoreIntents) {
+            mviModel.postIntent(intent, viewModel.currentState)
+        }
     }
 
     override fun render(state: ShowRoutinesViewState) {
@@ -109,14 +104,14 @@ class ShowRoutinesFragment(@LayoutRes contentLayoutId: Int)
 
     private fun setupRecyclerView(state: ShowRoutinesViewState) {
         mView.all_routines_rv.adapter =
-            RoutinesAdapter(
-                requireContext(),
-                state.routinesList.routines.toList(),
-                RoutinesAdapterMode.AllDisplay)
-                .also {
-                    it.setOnItemLongClickListener { sendIntent(ShowRoutinesIntent.OnItemLongClick(it)) }
-                    it.setOnItemClickListener { sendIntent(ShowRoutinesIntent.OnItemClick(it)) }
-                }
+                RoutinesAdapter(
+                        requireContext(),
+                        state.routinesList.routines.toList(),
+                        RoutinesAdapterMode.AllDisplay)
+                        .also {
+                            it.setOnItemLongClickListener { sendIntent(ShowRoutinesIntent.OnItemLongClick(it)) }
+                            it.setOnItemClickListener { sendIntent(ShowRoutinesIntent.OnItemClick(it)) }
+                        }
     }
 
     private fun showNewRoutineFragment(routine: RoutineData? = null) {

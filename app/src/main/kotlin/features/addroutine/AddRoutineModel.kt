@@ -17,7 +17,7 @@ class AddRoutineModel @Inject constructor(
         private val getRoutinesMemory: GetRoutinesMemory,
         private val convertRoutinesToJson: ConvertRoutinesListToJson,
         private val writeRoutinesToStorage: WriteRoutinesToStorage)
-    : MviModel<AddRoutineIntent, AddRoutineViewState> {
+    : MviModel<AddRoutineIntent, AddRoutineViewState>() {
     private var idCount = 0L
 
     private val newStateData = MutableLiveData<AddRoutineViewState>()

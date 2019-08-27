@@ -1,9 +1,10 @@
 package features.showroutines
 
-import androidx.lifecycle.Observer
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import mvi.MviModel
-import mvi.MviView
 import usecase.*
+import util.emit
 import javax.inject.Inject
 
 class ShowRoutinesModel @Inject constructor(
@@ -16,33 +17,29 @@ class ShowRoutinesModel @Inject constructor(
         private val jsonToRoutinesList: ConvertJsonToRoutinesList
 ) : MviModel<ShowRoutinesIntent, ShowRoutinesViewState>() {
 
-    private var render: (ShowRoutinesViewState) -> Unit = {}
-    private val observer = Observer<Pair<ShowRoutinesIntent, ShowRoutinesViewState>> { handleIntent(it.first, it.second) }
+    private val newStateData = MutableLiveData<ShowRoutinesViewState>()
+    override val stateData: LiveData<ShowRoutinesViewState>
+        get() = newStateData
 
-    override fun attachViewModel(viewModel: MviView<ShowRoutinesIntent, ShowRoutinesViewState>) {
-        viewModel.observeIntent(observer)
-        render = viewModel::render
-    }
-
-    private fun handleIntent(intent: ShowRoutinesIntent, state: ShowRoutinesViewState) {
+    override fun handleIntent(intent: ShowRoutinesIntent, state: ShowRoutinesViewState?) {
         when (intent) {
             is ShowRoutinesIntent.OnStartingUp -> handleStartingUp()
             is ShowRoutinesIntent.OnResuming -> handleResuming()
             is ShowRoutinesIntent.OnPausing -> handlePausing()
             is ShowRoutinesIntent.OnShuttingDown -> handleShuttingDown()
-            is ShowRoutinesIntent.AddNewRoutine -> handleNewRoutine(state)
+            is ShowRoutinesIntent.AddNewRoutine -> handleNewRoutine(state!!)
             is ShowRoutinesIntent.OnItemLongClick -> handleItemLongClick(intent)
-            is ShowRoutinesIntent.OnItemClick ->  handleItemClick(intent, state)
+            is ShowRoutinesIntent.OnItemClick -> handleItemClick(intent, state!!)
         }
     }
 
     private fun handleItemLongClick(intent: ShowRoutinesIntent.OnItemLongClick) {
         removeRoutineMemory(intent.data.id)
-        render(ShowRoutinesViewState(getRoutinesMemory()))
+        newStateData.emit { (ShowRoutinesViewState(getRoutinesMemory())) }
     }
 
     private fun handleItemClick(intent: ShowRoutinesIntent.OnItemClick, state: ShowRoutinesViewState) {
-        render(ShowRoutinesViewState(routinesList = state.routinesList, editRoutine = intent.data))
+        newStateData.emit { (ShowRoutinesViewState(routinesList = state.routinesList, editRoutine = intent.data)) }
     }
 
     private fun handleStartingUp() {
@@ -52,7 +49,7 @@ class ShowRoutinesModel @Inject constructor(
     }
 
     private fun handleResuming() {
-        render(ShowRoutinesViewState(getRoutinesMemory()))
+        newStateData.emit { (ShowRoutinesViewState(getRoutinesMemory())) }
     }
 
     private fun handlePausing() {
@@ -64,7 +61,7 @@ class ShowRoutinesModel @Inject constructor(
     }
 
     private fun handleNewRoutine(state: ShowRoutinesViewState) {
-        render(ShowRoutinesViewState(state.routinesList, true))
+        newStateData.emit { (ShowRoutinesViewState(state.routinesList, true)) }
     }
 
 }

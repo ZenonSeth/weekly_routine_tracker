@@ -6,11 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.Observer
-import androidx.lifecycle.OnLifecycleEvent
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.milchopenchev.weeklyexercisetracker.R
@@ -26,15 +22,16 @@ import javax.inject.Inject
 
 class DailyRoutineFragment(@LayoutRes contentLayoutId: Int)
     : Fragment(contentLayoutId),
-    MviView<DailyRoutineViewIntent, DailyRoutineViewState> {
+        MviView<DailyRoutineViewIntent, DailyRoutineViewState> {
     constructor() : this(0)
 
     @Inject
     lateinit var mviModel: DailyRoutineModel
-    private var observer = Observer<Pair<DailyRoutineViewIntent, DailyRoutineViewState>> {}
 
     private lateinit var viewModel: DailyRoutineAndroidViewModel
     private lateinit var mView: View
+    private val renderer = Observer<DailyRoutineViewState> { ignoreIntents = true; render(it); ignoreIntents = false }
+    private var ignoreIntents = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,7 +47,7 @@ class DailyRoutineFragment(@LayoutRes contentLayoutId: Int)
         mView = view
         view.daily_routines_rv.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
         viewModel = ViewModelProviders.of(this).get(DailyRoutineAndroidViewModel::class.java)
-        mviModel.attachViewModel(this)
+        mviModel.stateData.observe(this, renderer)
         initIntentListeners()
         render(DailyRoutineViewState.Initial)
     }
@@ -81,7 +78,9 @@ class DailyRoutineFragment(@LayoutRes contentLayoutId: Int)
     }
 
     fun sendIntent(intent: DailyRoutineViewIntent) {
-        observer.onChanged(Pair(intent, viewModel.currentState!!))
+        if (!ignoreIntents) {
+            mviModel.postIntent(intent, viewModel.currentState)
+        }
     }
 
     override fun render(state: DailyRoutineViewState) {
@@ -89,13 +88,13 @@ class DailyRoutineFragment(@LayoutRes contentLayoutId: Int)
             showAllRoutinesFragment()
         } else {
             mView.daily_routines_rv.adapter =
-                RoutinesAdapter(
-                    requireContext(),
-                    state.routinesList.routines.toList(),
-                    RoutinesAdapterMode.DailyDisplay)
-                    .also {
-                        it.setOnItemClickListener { sendIntent(DailyRoutineViewIntent.ItemClicked(it)) }
-                    }
+                    RoutinesAdapter(
+                            requireContext(),
+                            state.routinesList.routines.toList(),
+                            RoutinesAdapterMode.DailyDisplay)
+                            .also {
+                                it.setOnItemClickListener { sendIntent(DailyRoutineViewIntent.ItemClicked(it)) }
+                            }
         }
         viewModel.currentState = state
     }

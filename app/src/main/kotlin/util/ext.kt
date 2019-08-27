@@ -2,6 +2,7 @@ package util
 
 import android.os.Bundle
 import android.widget.CheckBox
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.MutableLiveData
 import application.RoutineApplication
@@ -18,6 +19,12 @@ fun <T> Bundle.getJsonObject(key: String, clazz: Class<T>): T? =
 
 fun CheckBox.setCheckedIfDifferent(checked: Boolean) {
     if (isChecked != checked) { toggle() }
+}
+
+fun TextView.setTextIfDifferent(newText: String) {
+    if (newText != text.toString()) {
+        text = newText
+    }
 }
 
 fun <T> MutableLiveData<T>.emit(newState: (currentState: T?) -> T) {

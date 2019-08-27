@@ -2,7 +2,10 @@ package mvi
 
 import androidx.lifecycle.LiveData
 
-interface MviModel<INTENT, VIEW_STATE> {
-    fun handleIntent(intent: INTENT, currentState: VIEW_STATE?)
-    val stateData: LiveData<VIEW_STATE>
+abstract class MviModel<INTENT, VIEW_STATE> {
+    fun postIntent(intent: INTENT, currentState: VIEW_STATE?) =
+            handleIntent(intent, currentState)
+
+    protected abstract fun handleIntent(intent: INTENT, currentState: VIEW_STATE?)
+    abstract val stateData: LiveData<VIEW_STATE>
 }

@@ -7,11 +7,7 @@ import android.view.ViewGroup
 import androidx.annotation.LayoutRes
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.Observer
-import androidx.lifecycle.OnLifecycleEvent
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.*
 import com.milchopenchev.weeklyexercisetracker.R
 import data.RoutineData
 import enums.DayOfWeek
@@ -23,24 +19,25 @@ import mvi.MviView
 import util.getApplicationComponent
 import util.getJsonObject
 import util.setCheckedIfDifferent
+import util.setTextIfDifferent
 import javax.inject.Inject
 
 class AddRoutineFragment(@LayoutRes contentLayoutId: Int)
     : Fragment(contentLayoutId),
-    MviView<AddRoutineIntent, AddRoutineViewState> {
+        MviView<AddRoutineIntent, AddRoutineViewState> {
     constructor() : this(0)
 
     companion object {
         const val ROUTINE_DATA = "routine_data"
     }
 
-    private var observer = Observer<Pair<AddRoutineIntent, AddRoutineViewState>> {}
-
     @Inject
     lateinit var mviModel: AddRoutineModel
-
     private lateinit var viewModel: AddRoutineAndroidViewModel
     private lateinit var mView: View
+
+    private val renderer = Observer<AddRoutineViewState> { ignoreIntents = true; render(it); ignoreIntents = false }
+    private var ignoreIntents = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,16 +53,17 @@ class AddRoutineFragment(@LayoutRes contentLayoutId: Int)
         super.onViewCreated(view, savedInstanceState)
         mView = view
         viewModel = ViewModelProviders.of(this).get(AddRoutineAndroidViewModel::class.java)
-        mviModel.stateData.observe(this, Observer { render(it) })
+        mviModel.stateData.observe(this, renderer)
         initIntentListeners()
         setupInitialState()
     }
 
-    private fun setupInitialState() =
+    private fun setupInitialState() {
         arguments
-            ?.getJsonObject(ROUTINE_DATA, RoutineData::class.java)
-            ?.let { sendIntent(AddRoutineIntent.PresetData(it)) }
-            ?: render(AddRoutineViewState.Initial)
+                ?.getJsonObject(ROUTINE_DATA, RoutineData::class.java)
+                ?.let { sendIntent(AddRoutineIntent.PresetData(it)) }
+                ?: render(AddRoutineViewState.Initial)
+    }
 
     override fun onResume() {
         super.onResume()
@@ -73,7 +71,9 @@ class AddRoutineFragment(@LayoutRes contentLayoutId: Int)
     }
 
     fun sendIntent(intent: AddRoutineIntent) {
-        mviModel.handleIntent(intent, viewModel.currentState)
+        if (!ignoreIntents) {
+            mviModel.postIntent(intent, viewModel.currentState)
+        }
     }
 
     private fun initIntentListeners() {
@@ -111,9 +111,7 @@ class AddRoutineFragment(@LayoutRes contentLayoutId: Int)
         when {
             state.finished -> finished()
             else -> {
-                if (state.title != mView.title_edit_text?.text.toString()) {
-                    mView.title_edit_text.setText(state.title)
-                }
+                mView.title_edit_text.setTextIfDifferent(state.title)
                 if (state.repeatType != viewModel.currentState?.repeatType) {
                     when (state.repeatType) {
                         RepeatType.Daily -> mView.daily_radio_button.isChecked = true
