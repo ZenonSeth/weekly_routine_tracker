@@ -6,6 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.Observer
+import androidx.lifecycle.OnLifecycleEvent
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -14,18 +18,25 @@ import data.RoutineData
 import features.activity.IActionbarActivity
 import features.activity.INavigationActivity
 import features.addroutine.AddRoutineFragment
+import features.routinesadapter.RoutinesAdapter
+import features.routinesadapter.RoutinesAdapterMode
 import kotlinx.android.synthetic.main.show_routines_layout.view.*
+import mvi.MviView
 import util.getApplicationComponent
 import util.putObjectJson
 import javax.inject.Inject
 
-class ShowRoutinesFragment(@LayoutRes contentLayoutId: Int) : Fragment(contentLayoutId) {
+class ShowRoutinesFragment(@LayoutRes contentLayoutId: Int)
+    : Fragment(contentLayoutId),
+    MviView<ShowRoutinesIntent, ShowRoutinesViewState> {
     constructor() : this(0)
 
     @Inject
     lateinit var mviModel: ShowRoutinesModel
+    private var observer = Observer<Pair<ShowRoutinesIntent, ShowRoutinesViewState>> {}
 
-    private lateinit var mviView: ShowRoutinesView
+    private lateinit var viewModel: ShowRoutinesAndroidViewModel
+    private lateinit var mView: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,10 +49,39 @@ class ShowRoutinesFragment(@LayoutRes contentLayoutId: Int) : Fragment(contentLa
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        mView = view
         view.all_routines_rv.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
-        mviView = ViewModelProviders.of(this).get(ShowRoutinesView::class.java)
-        mviView.init(this)
-        mviModel.attachViewModel(mviView)
+        viewModel = ViewModelProviders.of(this).get(ShowRoutinesAndroidViewModel::class.java)
+        mviModel.attachViewModel(this)
+        initIntentListeners()
+        render(ShowRoutinesViewState.Initial)
+    }
+
+    private fun initIntentListeners() {
+        lifecycle.addObserver(object : LifecycleObserver {
+            @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+            fun onStop() {
+                sendIntent(ShowRoutinesIntent.OnShuttingDown)
+            }
+
+            @OnLifecycleEvent(Lifecycle.Event.ON_START)
+            fun onStart() {
+                sendIntent(ShowRoutinesIntent.OnStartingUp)
+            }
+
+            @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+            fun onPause() {
+                sendIntent(ShowRoutinesIntent.OnPausing)
+            }
+
+            @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+            fun onResume() {
+                sendIntent(ShowRoutinesIntent.OnResuming)
+            }
+        })
+        mView.new_routine_button.setOnClickListener {
+            sendIntent(ShowRoutinesIntent.AddNewRoutine)
+        }
     }
 
     override fun onResume() {
@@ -49,7 +89,37 @@ class ShowRoutinesFragment(@LayoutRes contentLayoutId: Int) : Fragment(contentLa
         (context as? IActionbarActivity)?.setActionbarTitle(resources.getString(R.string.show_routines_title))
     }
 
-    fun showNewRoutineFragment(routine: RoutineData? = null) {
+    fun sendIntent(intent: ShowRoutinesIntent) {
+        observer.onChanged(Pair(intent, viewModel.currentState!!))
+    }
+
+    override fun observeIntent(observer: Observer<Pair<ShowRoutinesIntent, ShowRoutinesViewState>>) {
+        this.observer = observer
+    }
+
+    override fun render(state: ShowRoutinesViewState) {
+        when {
+            state.addNewRoutine -> showNewRoutineFragment()
+            state.editRoutine != null -> showNewRoutineFragment(state.editRoutine)
+            else -> setupRecyclerView(state)
+
+        }
+        viewModel.currentState = state
+    }
+
+    private fun setupRecyclerView(state: ShowRoutinesViewState) {
+        mView.all_routines_rv.adapter =
+            RoutinesAdapter(
+                requireContext(),
+                state.routinesList.routines.toList(),
+                RoutinesAdapterMode.AllDisplay)
+                .also {
+                    it.setOnItemLongClickListener { sendIntent(ShowRoutinesIntent.OnItemLongClick(it)) }
+                    it.setOnItemClickListener { sendIntent(ShowRoutinesIntent.OnItemClick(it)) }
+                }
+    }
+
+    private fun showNewRoutineFragment(routine: RoutineData? = null) {
         (context as? INavigationActivity)
                 ?.addFragment(getRoutineFragment(routine), AddRoutineFragment::class.java.simpleName)
     }

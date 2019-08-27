@@ -1,5 +1,6 @@
 package features.addroutine
 
+import data.RoutineData
 import enums.DayOfWeek
 import enums.RepeatType
 
@@ -10,4 +11,5 @@ sealed class AddRoutineIntent {
     class TitleChanged(val title: String) : AddRoutineIntent()
     class RepeatTypeChanged(val repeatType: RepeatType) : AddRoutineIntent()
     class DayCheckedChange(val dayOfWeek: DayOfWeek, val checked: Boolean) : AddRoutineIntent()
+    class PresetData(val routineData: RoutineData) : AddRoutineIntent()
 }

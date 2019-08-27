@@ -54,13 +54,13 @@ class ResetRoutines @Inject constructor(private val dayOfWeekFromTime: DayOfWeek
         val currentDay = dayOfWeekFromTime(currentTime)
         return RoutinesListData(routinesData.routines.map { data ->
             when (data.type) {
-                RepeatType.Daily -> resetDailyRoutine(data, currentTime, currentDay)
+                RepeatType.Daily -> resetDailyRoutine(data, currentDay)
                 RepeatType.Weekly -> resetWeeklyRoutine(data, currentDay)
             }
         }.toSet())
     }
 
-    private fun resetDailyRoutine(data: RoutineData, currentTime: Long, currentDay: DayOfWeek): RoutineData =
+    private fun resetDailyRoutine(data: RoutineData, currentDay: DayOfWeek): RoutineData =
             if (!data.completed || dayOfWeekFromTime(data.lastCompletedTimestamp) == currentDay) {
                 data
             } else {

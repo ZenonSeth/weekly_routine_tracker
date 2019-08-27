@@ -1,14 +1,15 @@
 package features.addroutine
 
-import androidx.lifecycle.Observer
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import data.RoutineData
 import enums.RepeatType
 import mvi.MviModel
-import mvi.MviView
 import usecase.ConvertRoutinesListToJson
 import usecase.GetRoutinesMemory
 import usecase.PutRoutineMemory
 import usecase.WriteRoutinesToStorage
+import util.emit
 import javax.inject.Inject
 
 class AddRoutineModel @Inject constructor(
@@ -16,40 +17,34 @@ class AddRoutineModel @Inject constructor(
         private val getRoutinesMemory: GetRoutinesMemory,
         private val convertRoutinesToJson: ConvertRoutinesListToJson,
         private val writeRoutinesToStorage: WriteRoutinesToStorage)
-    : MviModel<AddRoutineIntent, AddRoutineViewState>() {
-
-    private var routineData: RoutineData? = null
-    private var render: (AddRoutineViewState) -> Unit = {}
+    : MviModel<AddRoutineIntent, AddRoutineViewState> {
     private var idCount = 0L
-    private val observer = Observer<Pair<AddRoutineIntent, AddRoutineViewState>> { handleIntent(it.first, it.second) }
 
-    override fun attachViewModel(viewModel: MviView<AddRoutineIntent, AddRoutineViewState>) {
-        viewModel.observeIntent(observer)
-        render = viewModel::render
-        renderImportedRoutineData()
-    }
+    private val newStateData = MutableLiveData<AddRoutineViewState>()
+    override val stateData: LiveData<AddRoutineViewState>
+        get() = newStateData
 
-    private fun renderImportedRoutineData() {
-        routineData?.let { data ->
-            render(AddRoutineViewState(
-                    data.description,
-                    data.type,
-                    data.type == RepeatType.Weekly,
-                    data.days,
-                    true))
-        }
-    }
-
-    private fun handleIntent(intent: AddRoutineIntent, state: AddRoutineViewState) {
+    override fun handleIntent(intent: AddRoutineIntent, currentState: AddRoutineViewState?) {
         when (intent) {
-            AddRoutineIntent.SaveClicked -> handleSaveRoutine(state)
-            AddRoutineIntent.CancelledClicked -> render(state.copy(finished = true))
+            AddRoutineIntent.SaveClicked -> handleSaveRoutine(currentState!!)
+            AddRoutineIntent.CancelledClicked -> newStateData.emit { currentState!!.copy(finished = true) }
             AddRoutineIntent.OnUserLeaving -> handleUserLeft()
-            is AddRoutineIntent.TitleChanged -> handleTitleChanged(intent, state)
-            is AddRoutineIntent.RepeatTypeChanged -> handleRepeatTypeChange(intent, state)
-            is AddRoutineIntent.DayCheckedChange -> handleDayCheckChange(intent, state)
+            is AddRoutineIntent.TitleChanged -> handleTitleChanged(intent, currentState!!)
+            is AddRoutineIntent.RepeatTypeChanged -> handleRepeatTypeChange(intent, currentState!!)
+            is AddRoutineIntent.DayCheckedChange -> handleDayCheckChange(intent, currentState!!)
+            is AddRoutineIntent.PresetData -> handlePresetData(intent)
         }
     }
+
+    private fun handlePresetData(intent: AddRoutineIntent.PresetData) =
+        newStateData.emit {
+            (AddRoutineViewState(
+                intent.routineData.description,
+                intent.routineData.type,
+                intent.routineData.type == RepeatType.Weekly,
+                intent.routineData.days,
+                true))
+        }
 
     private fun handleDayCheckChange(intent: AddRoutineIntent.DayCheckedChange, state: AddRoutineViewState) {
         val newDays =
@@ -58,19 +53,19 @@ class AddRoutineModel @Inject constructor(
                 } else {
                     state.daysSelected - intent.dayOfWeek
                 }
-        render(setupSaveButtonState(state.copy(daysSelected = newDays)))
+        newStateData.emit { (setupSaveButtonState(state.copy(daysSelected = newDays))) }
     }
 
     private fun handleRepeatTypeChange(intent: AddRoutineIntent.RepeatTypeChanged, state: AddRoutineViewState) =
             when (intent.repeatType) {
                 RepeatType.Daily ->
-                    render(setupSaveButtonState(state.copy(repeatType = RepeatType.Daily, daysVisible = false)))
+                    newStateData.emit { (setupSaveButtonState(state.copy(repeatType = RepeatType.Daily, daysVisible = false))) }
                 RepeatType.Weekly ->
-                    render(setupSaveButtonState(state.copy(repeatType = RepeatType.Weekly, daysVisible = true)))
+                    newStateData.emit { (setupSaveButtonState(state.copy(repeatType = RepeatType.Weekly, daysVisible = true))) }
             }
 
     private fun handleTitleChanged(intent: AddRoutineIntent.TitleChanged, state: AddRoutineViewState) =
-            render(setupSaveButtonState(state.copy(title = intent.title)))
+        newStateData.emit { (setupSaveButtonState(state.copy(title = intent.title))) }
 
 
     private fun setupSaveButtonState(state: AddRoutineViewState): AddRoutineViewState =
@@ -80,7 +75,7 @@ class AddRoutineModel @Inject constructor(
 
     private fun handleSaveRoutine(state: AddRoutineViewState) {
         putRoutineMemory(getNewRoutineData(state))
-        render(state.copy(finished = true))
+        newStateData.emit { (state.copy(finished = true)) }
     }
 
     private fun handleUserLeft() {
@@ -91,23 +86,18 @@ class AddRoutineModel @Inject constructor(
             when (state.repeatType) {
                 RepeatType.Daily ->
                     RoutineData(
-                            id = generateNewId(),
+                        id = generateNewId(state),
                             description = state.title,
                             type = RepeatType.Daily)
                 RepeatType.Weekly ->
                     RoutineData(
-                            id = generateNewId(),
+                        id = generateNewId(state),
                             description = state.title,
                             type = RepeatType.Weekly,
                             days = state.daysSelected)
             }
 
-    private fun generateNewId(): Long {
-        return routineData?.id ?: System.currentTimeMillis() + idCount.also { idCount++ }
-    }
-
-    fun setRoutineData(routineData: RoutineData) {
-        this.routineData = routineData
-        renderImportedRoutineData()
+    private fun generateNewId(state: AddRoutineViewState): Long {
+        return state.routineData?.id ?: System.currentTimeMillis() + idCount.also { idCount++ }
     }
 }

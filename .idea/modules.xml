@@ -4,6 +4,8 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/WeeklyExerciseTracker.iml" filepath="$PROJECT_DIR$/WeeklyExerciseTracker.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/weeklyroutine.iml" filepath="$PROJECT_DIR$/.idea/weeklyroutine.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/weeklyroutine-app.iml" filepath="$PROJECT_DIR$/app/weeklyroutine-app.iml" />
     </modules>
   </component>
 </project>

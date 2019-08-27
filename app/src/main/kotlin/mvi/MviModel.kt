@@ -1,5 +1,8 @@
 package mvi
 
-abstract class MviModel<INTENT, VIEW_STATE> {
-    abstract fun attachViewModel(viewModel: MviView<INTENT, VIEW_STATE>)
+import androidx.lifecycle.LiveData
+
+interface MviModel<INTENT, VIEW_STATE> {
+    fun handleIntent(intent: INTENT, currentState: VIEW_STATE?)
+    val stateData: LiveData<VIEW_STATE>
 }
