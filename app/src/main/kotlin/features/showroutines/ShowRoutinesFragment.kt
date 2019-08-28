@@ -6,7 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.*
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.Observer
+import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.milchopenchev.weeklyexercisetracker.R
@@ -18,6 +22,7 @@ import features.routinesadapter.RoutinesAdapter
 import features.routinesadapter.RoutinesAdapterMode
 import kotlinx.android.synthetic.main.show_routines_layout.view.*
 import mvi.MviView
+import util.ExecutionGuard
 import util.getApplicationComponent
 import util.putObjectJson
 import javax.inject.Inject
@@ -32,8 +37,8 @@ class ShowRoutinesFragment(@LayoutRes contentLayoutId: Int)
 
     private lateinit var viewModel: ShowRoutinesAndroidViewModel
     private lateinit var mView: View
-    private val renderer = Observer<ShowRoutinesViewState> { ignoreIntents = true; render(it); ignoreIntents = false }
-    private var ignoreIntents = false
+    private val renderer = Observer<ShowRoutinesViewState> { intentGuard.runGuarding { render(it); } }
+    private val intentGuard = ExecutionGuard()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,11 +91,8 @@ class ShowRoutinesFragment(@LayoutRes contentLayoutId: Int)
         (context as? IActionbarActivity)?.setActionbarTitle(resources.getString(R.string.show_routines_title))
     }
 
-    fun sendIntent(intent: ShowRoutinesIntent) {
-        if (!ignoreIntents) {
-            mviModel.postIntent(intent, viewModel.currentState)
-        }
-    }
+    fun sendIntent(intent: ShowRoutinesIntent) =
+        intentGuard.runIfFree { mviModel.postIntent(intent, viewModel.currentState) }
 
     override fun render(state: ShowRoutinesViewState) {
         when {

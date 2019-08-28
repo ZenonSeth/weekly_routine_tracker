@@ -7,7 +7,11 @@ import android.view.ViewGroup
 import androidx.annotation.LayoutRes
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.*
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.Observer
+import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.ViewModelProviders
 import com.milchopenchev.weeklyexercisetracker.R
 import data.RoutineData
 import enums.DayOfWeek
@@ -16,6 +20,7 @@ import features.activity.IActionbarActivity
 import features.activity.INavigationActivity
 import kotlinx.android.synthetic.main.add_routine_layout.view.*
 import mvi.MviView
+import util.ExecutionGuard
 import util.getApplicationComponent
 import util.getJsonObject
 import util.setCheckedIfDifferent
@@ -36,8 +41,8 @@ class AddRoutineFragment(@LayoutRes contentLayoutId: Int)
     private lateinit var viewModel: AddRoutineAndroidViewModel
     private lateinit var mView: View
 
-    private val renderer = Observer<AddRoutineViewState> { ignoreIntents = true; render(it); ignoreIntents = false }
-    private var ignoreIntents = false
+    private val renderer = Observer<AddRoutineViewState> { intentGuard.runGuarding { render(it) } }
+    private val intentGuard = ExecutionGuard()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,11 +75,9 @@ class AddRoutineFragment(@LayoutRes contentLayoutId: Int)
         (context as? IActionbarActivity)?.setActionbarTitle(resources.getString(R.string.add_routine_title))
     }
 
-    fun sendIntent(intent: AddRoutineIntent) {
-        if (!ignoreIntents) {
-            mviModel.postIntent(intent, viewModel.currentState)
-        }
-    }
+    fun sendIntent(intent: AddRoutineIntent) =
+        intentGuard.runIfFree { mviModel.postIntent(intent, viewModel.currentState) }
+
 
     private fun initIntentListeners() {
         lifecycle.addObserver(object : LifecycleObserver {

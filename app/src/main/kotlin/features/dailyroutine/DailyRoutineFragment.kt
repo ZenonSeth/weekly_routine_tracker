@@ -6,7 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.*
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.Observer
+import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.milchopenchev.weeklyexercisetracker.R
@@ -17,6 +21,7 @@ import features.routinesadapter.RoutinesAdapterMode
 import features.showroutines.ShowRoutinesFragment
 import kotlinx.android.synthetic.main.daily_routine_layout.view.*
 import mvi.MviView
+import util.ExecutionGuard
 import util.getApplicationComponent
 import javax.inject.Inject
 
@@ -30,8 +35,8 @@ class DailyRoutineFragment(@LayoutRes contentLayoutId: Int)
 
     private lateinit var viewModel: DailyRoutineAndroidViewModel
     private lateinit var mView: View
-    private val renderer = Observer<DailyRoutineViewState> { ignoreIntents = true; render(it); ignoreIntents = false }
-    private var ignoreIntents = false
+    private val renderer = Observer<DailyRoutineViewState> { intentGuard.runGuarding { render(it) } }
+    private val intentGuard = ExecutionGuard()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,11 +82,8 @@ class DailyRoutineFragment(@LayoutRes contentLayoutId: Int)
         (context as? IActionbarActivity)?.setActionbarTitle(resources.getString(R.string.daily_routine_title))
     }
 
-    fun sendIntent(intent: DailyRoutineViewIntent) {
-        if (!ignoreIntents) {
-            mviModel.postIntent(intent, viewModel.currentState)
-        }
-    }
+    fun sendIntent(intent: DailyRoutineViewIntent) =
+        intentGuard.runIfFree { mviModel.postIntent(intent, viewModel.currentState) }
 
     override fun render(state: DailyRoutineViewState) {
         if (state.manageRoutines) {
