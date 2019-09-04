@@ -1,65 +1,51 @@
 package features.dailyroutine
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import data.RoutinesListData
 import mvi.MviModel
 import usecase.*
-import util.emit
 import javax.inject.Inject
 
-class DailyRoutineModel @Inject constructor(
-        private val readRoutinesFromStorage: ReadRoutinesFromStorage,
-        private val writeRoutinesToStorage: WriteRoutinesToStorage,
-        private val setRoutinesMemory: SetRoutinesMemory,
-        private val getRoutinesMemory: GetRoutinesMemory,
-        private val putRoutineMemory: PutRoutineMemory,
-        private val routinesListToJson: ConvertRoutinesListToJson,
-        private val jsonToRoutinesList: ConvertJsonToRoutinesList,
-        private val filterRoutines: FilterRoutines,
-        private val dayOfWeekFromTime: DayOfWeekFromTime,
-        private val completeRoutineToggle: ToggleCompleteRoutine,
-        private val resetRoutines: ResetRoutines)
-    : MviModel<DailyRoutineViewIntent, DailyRoutineViewState>() {
+class DailyRoutineModel: MviModel<DailyRoutineIntent, DailyRoutineState, DailyRoutineEvent>() {
+    @Inject lateinit var getRoutinesMemory: GetRoutinesMemory
+    @Inject lateinit var putRoutineMemory: PutRoutineMemory
+    @Inject lateinit var filterRoutines: FilterRoutines
+    @Inject lateinit var completeRoutineToggle: ToggleCompleteRoutine
+    @Inject lateinit var resetRoutinesInMemory: ResetRoutinesInMemory
+    @Inject lateinit var loadRoutineStorageIntoMemory: LoadRoutineStorageIntoMemory
+    @Inject lateinit var saveRoutineMemoryToStorage: SaveRoutineMemoryToStorage
 
-    private val newStateData = MutableLiveData<DailyRoutineViewState>()
-    override val stateData: LiveData<DailyRoutineViewState>
-        get() = newStateData
+    override fun getInitialState() = DailyRoutineState.Initial
 
-    override fun handleIntent(intent: DailyRoutineViewIntent, currentState: DailyRoutineViewState?) {
+    override fun handleIntent(intent: DailyRoutineIntent) {
         when (intent) {
-            DailyRoutineViewIntent.OnStartingUp -> handleStartingUp()
-            DailyRoutineViewIntent.OnShuttingDown -> handleShuttingDown()
-            DailyRoutineViewIntent.OnResuming -> handleOnResuming()
-            DailyRoutineViewIntent.ManageButtonClick -> handleManageButtonClick(currentState!!)
-            is DailyRoutineViewIntent.ItemClicked -> handleItemClicked(intent)
+            DailyRoutineIntent.OnStartingUp -> handleStartingUp()
+            DailyRoutineIntent.OnShuttingDown -> handleShuttingDown()
+            DailyRoutineIntent.ManageButtonClick -> handleManageButtonClick()
+            is DailyRoutineIntent.ItemClicked -> handleItemClicked(intent)
         }
     }
 
     private fun handleStartingUp() {
         if (getRoutinesMemory().routines.isEmpty()) {
-            setRoutinesMemory(jsonToRoutinesList(readRoutinesFromStorage()))
+            loadRoutineStorageIntoMemory()
         }
+        emitState { it.copy(routinesList = applyFilter(getRoutinesMemory())) }
     }
 
     private fun handleShuttingDown() {
-        setRoutinesMemory(resetRoutines(getRoutinesMemory(), System.currentTimeMillis()))
-        writeRoutinesToStorage(routinesListToJson(getRoutinesMemory()))
+        resetRoutinesInMemory(System.currentTimeMillis())
+        saveRoutineMemoryToStorage()
     }
 
-    private fun handleOnResuming() {
-        newStateData.emit { (DailyRoutineViewState(applyFilter(getRoutinesMemory()))) }
+    private fun handleManageButtonClick() {
+        emitEvent { DailyRoutineEvent.GoToManageRoutineScreen }
     }
 
-    private fun handleManageButtonClick(state: DailyRoutineViewState) {
-        newStateData.emit { (DailyRoutineViewState(state.routinesList, true)) }
-    }
-
-    private fun handleItemClicked(intent: DailyRoutineViewIntent.ItemClicked) {
+    private fun handleItemClicked(intent: DailyRoutineIntent.ItemClicked) {
         putRoutineMemory(completeRoutineToggle(intent.data, System.currentTimeMillis()))
-        newStateData.emit { (DailyRoutineViewState(applyFilter(getRoutinesMemory()))) }
+        emitState { (DailyRoutineState(applyFilter(getRoutinesMemory()))) }
     }
 
     private fun applyFilter(data: RoutinesListData) =
-            filterRoutines(data, dayOfWeekFromTime(System.currentTimeMillis()))
+        filterRoutines(data, System.currentTimeMillis())
 }

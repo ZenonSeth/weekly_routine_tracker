@@ -7,11 +7,7 @@ import android.view.ViewGroup
 import androidx.annotation.LayoutRes
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.Observer
-import androidx.lifecycle.OnLifecycleEvent
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.*
 import com.milchopenchev.weeklyexercisetracker.R
 import data.RoutineData
 import enums.DayOfWeek
@@ -19,55 +15,47 @@ import enums.RepeatType
 import features.activity.IActionbarActivity
 import features.activity.INavigationActivity
 import kotlinx.android.synthetic.main.add_routine_layout.view.*
-import mvi.MviView
-import util.ExecutionGuard
-import util.getApplicationComponent
-import util.getJsonObject
-import util.setCheckedIfDifferent
-import util.setTextIfDifferent
-import javax.inject.Inject
+import mvi.Event
+import util.*
 
-class AddRoutineFragment(@LayoutRes contentLayoutId: Int)
-    : Fragment(contentLayoutId),
-        MviView<AddRoutineIntent, AddRoutineViewState> {
+class AddRoutineFragment(@LayoutRes contentLayoutId: Int) : Fragment(contentLayoutId) {
     constructor() : this(0)
 
     companion object {
         const val ROUTINE_DATA = "routine_data"
     }
 
-    @Inject
-    lateinit var mviModel: AddRoutineModel
-    private lateinit var viewModel: AddRoutineAndroidViewModel
+    lateinit var viewModel: AddRoutineModel
     private lateinit var mView: View
 
-    private val renderer = Observer<AddRoutineViewState> { intentGuard.runGuarding { render(it) } }
+    private val renderer = Observer<AddRoutineState> { render(it) }
+    private val eventHandler = Observer<Event<AddRoutineEvent>> { it.get()?.let { handle(it) } }
+
     private val intentGuard = ExecutionGuard()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        getApplicationComponent().inject(this)
+        viewModel = ViewModelProviders.of(this).get(AddRoutineModel::class.java)
+        getApplicationComponent().inject(viewModel)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater.inflate(R.layout.add_routine_layout, container, false)
     }
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         mView = view
-        viewModel = ViewModelProviders.of(this).get(AddRoutineAndroidViewModel::class.java)
-        mviModel.stateData.observe(this, renderer)
+        viewModel = ViewModelProviders.of(this).get(AddRoutineModel::class.java)
+        viewModel.observe(this, renderer, eventHandler)
         initIntentListeners()
         setupInitialState()
     }
 
     private fun setupInitialState() {
         arguments
-                ?.getJsonObject(ROUTINE_DATA, RoutineData::class.java)
-                ?.let { sendIntent(AddRoutineIntent.PresetData(it)) }
-                ?: render(AddRoutineViewState.Initial)
+            ?.getJsonObject(ROUTINE_DATA, RoutineData::class.java)
+            ?.let { sendIntent(AddRoutineIntent.PresetData(it)) }
     }
 
     override fun onResume() {
@@ -75,9 +63,9 @@ class AddRoutineFragment(@LayoutRes contentLayoutId: Int)
         (context as? IActionbarActivity)?.setActionbarTitle(resources.getString(R.string.add_routine_title))
     }
 
-    fun sendIntent(intent: AddRoutineIntent) =
-        intentGuard.runIfFree { mviModel.postIntent(intent, viewModel.currentState) }
-
+    fun sendIntent(intent: AddRoutineIntent) = intentGuard.runIfFree {
+        viewModel.postIntent(intent)
+    }
 
     private fun initIntentListeners() {
         lifecycle.addObserver(object : LifecycleObserver {
@@ -110,16 +98,19 @@ class AddRoutineFragment(@LayoutRes contentLayoutId: Int)
         mView.sun_cb?.setOnCheckedChangeListener { _, isChecked -> onCheckChange(DayOfWeek.Sun, isChecked) }
     }
 
-    override fun render(state: AddRoutineViewState) {
+    private fun handle(it: AddRoutineEvent) {
+        when (it) {
+            AddRoutineEvent.Finish -> finished()
+        }
+    }
+
+    private fun render(state: AddRoutineState) = intentGuard.runGuarding {
         when {
-            state.finished -> finished()
             else -> {
                 mView.title_edit_text.setTextIfDifferent(state.title)
-                if (state.repeatType != viewModel.currentState?.repeatType) {
-                    when (state.repeatType) {
-                        RepeatType.Daily -> mView.daily_radio_button.isChecked = true
-                        RepeatType.Weekly -> mView.weekly_radio_button.isChecked = true
-                    }
+                when (state.repeatType) {
+                    RepeatType.Daily -> mView.daily_radio_button.isChecked = true
+                    RepeatType.Weekly -> mView.weekly_radio_button.isChecked = true
                 }
                 DayOfWeek.values().forEach {
                     when (it) {
@@ -132,15 +123,10 @@ class AddRoutineFragment(@LayoutRes contentLayoutId: Int)
                         DayOfWeek.Sun -> mView.sun_cb.setCheckedIfDifferent(state.daysSelected.contains(it))
                     }
                 }
-                if (state.daysVisible != viewModel.currentState?.daysVisible) {
-                    mView.day_selection_group.visibility = if (state.daysVisible) View.VISIBLE else View.GONE
-                }
-                if (state.saveEnabled != viewModel.currentState?.saveEnabled) {
-                    mView.save_button.isEnabled = state.saveEnabled
-                }
+                mView.day_selection_group.visibility = if (state.daysVisible) View.VISIBLE else View.GONE
+                mView.save_button.isEnabled = state.saveEnabled
             }
         }
-        viewModel.currentState = state
     }
 
     fun finished() {

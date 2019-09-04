@@ -5,8 +5,11 @@ import dagger.Component
 import dagger.Module
 import dagger.Provides
 import features.addroutine.AddRoutineFragment
+import features.addroutine.AddRoutineModel
 import features.dailyroutine.DailyRoutineFragment
+import features.dailyroutine.DailyRoutineModel
 import features.showroutines.ShowRoutinesFragment
+import features.showroutines.ShowRoutinesModel
 import javax.inject.Singleton
 
 @Module
@@ -18,7 +21,7 @@ class AndroidModule(private val context: Context) {
 @Singleton
 @Component(modules = [AndroidModule::class])
 interface RoutineAppComponent {
-    fun inject(fragment: AddRoutineFragment)
-    fun inject(fragment: ShowRoutinesFragment)
-    fun inject(fragment: DailyRoutineFragment)
+    fun inject(model: AddRoutineModel)
+    fun inject(model: ShowRoutinesModel)
+    fun inject(model: DailyRoutineModel)
 }

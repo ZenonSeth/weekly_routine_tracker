@@ -36,17 +36,28 @@ class ToggleCompleteRoutine @Inject constructor(
 }
 
 
-class FilterRoutines @Inject constructor() {
-    operator fun invoke(routineData: RoutinesListData, dayOfWeek: DayOfWeek): RoutinesListData =
-            RoutinesListData(
-                    routineData.routines
-                            .filter {
-                                it.type == RepeatType.Daily ||
-                                        (it.type == RepeatType.Weekly && it.days.contains(dayOfWeek))
-                            }
-                            .sortedBy { it.description }
-                            .toSet()
-            )
+class FilterRoutines @Inject constructor(private val dayOfWeekFromTime: DayOfWeekFromTime) {
+    operator fun invoke(routineData: RoutinesListData, byCurrentTime: Long): RoutinesListData {
+        val dayOfWeek = dayOfWeekFromTime(byCurrentTime)
+        return RoutinesListData(
+            routineData.routines
+                .filter {
+                    it.type == RepeatType.Daily ||
+                        (it.type == RepeatType.Weekly && it.days.contains(dayOfWeek))
+                }
+                .sortedBy { it.description }
+                .toSet()
+        )
+    }
+}
+
+class ResetRoutinesInMemory @Inject constructor(
+    private val resetRoutines: ResetRoutines,
+    private val getRoutinesMemory: GetRoutinesMemory,
+    private val setRoutinesMemory: SetRoutinesMemory) {
+    operator fun invoke(currentTime: Long) {
+        setRoutinesMemory(resetRoutines(getRoutinesMemory(), currentTime))
+    }
 }
 
 class ResetRoutines @Inject constructor(private val dayOfWeekFromTime: DayOfWeekFromTime) {

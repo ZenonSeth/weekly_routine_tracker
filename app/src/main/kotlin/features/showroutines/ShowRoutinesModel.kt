@@ -1,67 +1,53 @@
 package features.showroutines
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import mvi.MviModel
-import usecase.*
-import util.emit
+import usecase.GetRoutinesMemory
+import usecase.LoadRoutineStorageIntoMemory
+import usecase.RemoveRoutineMemory
+import usecase.SaveRoutineMemoryToStorage
 import javax.inject.Inject
 
-class ShowRoutinesModel @Inject constructor(
-        private val getRoutinesMemory: GetRoutinesMemory,
-        private val setRoutinesMemory: SetRoutinesMemory,
-        private val removeRoutineMemory: RemoveRoutineMemory,
-        private val readRoutinesFromStorage: ReadRoutinesFromStorage,
-        private val writeRoutinesToStorage: WriteRoutinesToStorage,
-        private val routinesListToJson: ConvertRoutinesListToJson,
-        private val jsonToRoutinesList: ConvertJsonToRoutinesList
-) : MviModel<ShowRoutinesIntent, ShowRoutinesViewState>() {
+class ShowRoutinesModel : MviModel<ShowRoutinesIntent, ShowRoutinesState, ShowRoutinesEvent>() {
 
-    private val newStateData = MutableLiveData<ShowRoutinesViewState>()
-    override val stateData: LiveData<ShowRoutinesViewState>
-        get() = newStateData
+    @Inject lateinit var removeRoutineMemory: RemoveRoutineMemory
+    @Inject lateinit var loadRoutineStorageIntoMemory: LoadRoutineStorageIntoMemory
+    @Inject lateinit var saveRoutineMemoryToStorage: SaveRoutineMemoryToStorage
+    @Inject lateinit var getRoutinesMemory: GetRoutinesMemory
 
-    override fun handleIntent(intent: ShowRoutinesIntent, state: ShowRoutinesViewState?) {
+    override fun getInitialState() = ShowRoutinesState.Initial
+
+    override fun handleIntent(intent: ShowRoutinesIntent) {
         when (intent) {
             is ShowRoutinesIntent.OnStartingUp -> handleStartingUp()
-            is ShowRoutinesIntent.OnResuming -> handleResuming()
-            is ShowRoutinesIntent.OnPausing -> handlePausing()
             is ShowRoutinesIntent.OnShuttingDown -> handleShuttingDown()
-            is ShowRoutinesIntent.AddNewRoutine -> handleNewRoutine(state!!)
+            is ShowRoutinesIntent.AddNewRoutine -> handleNewRoutine()
             is ShowRoutinesIntent.OnItemLongClick -> handleItemLongClick(intent)
-            is ShowRoutinesIntent.OnItemClick -> handleItemClick(intent, state!!)
+            is ShowRoutinesIntent.OnItemClick -> handleItemClick(intent)
         }
     }
 
     private fun handleItemLongClick(intent: ShowRoutinesIntent.OnItemLongClick) {
         removeRoutineMemory(intent.data.id)
-        newStateData.emit { (ShowRoutinesViewState(getRoutinesMemory())) }
+        emitState { (ShowRoutinesState(getRoutinesMemory())) }
     }
 
-    private fun handleItemClick(intent: ShowRoutinesIntent.OnItemClick, state: ShowRoutinesViewState) {
-        newStateData.emit { (ShowRoutinesViewState(routinesList = state.routinesList, editRoutine = intent.data)) }
+    private fun handleItemClick(intent: ShowRoutinesIntent.OnItemClick) {
+        emitEvent { ShowRoutinesEvent.EditRoutine(intent.data) }
     }
 
     private fun handleStartingUp() {
         if (getRoutinesMemory().routines.isEmpty()) {
-            setRoutinesMemory(jsonToRoutinesList(readRoutinesFromStorage()))
+            loadRoutineStorageIntoMemory()
         }
-    }
-
-    private fun handleResuming() {
-        newStateData.emit { (ShowRoutinesViewState(getRoutinesMemory())) }
-    }
-
-    private fun handlePausing() {
-        // hmmm...
+        emitState { it.copy(routinesList = getRoutinesMemory()) }
     }
 
     private fun handleShuttingDown() {
-        writeRoutinesToStorage(routinesListToJson(getRoutinesMemory()))
+        saveRoutineMemoryToStorage()
     }
 
-    private fun handleNewRoutine(state: ShowRoutinesViewState) {
-        newStateData.emit { (ShowRoutinesViewState(state.routinesList, true)) }
+    private fun handleNewRoutine() {
+        emitEvent { ShowRoutinesEvent.AddNewRoutine }
     }
 
 }

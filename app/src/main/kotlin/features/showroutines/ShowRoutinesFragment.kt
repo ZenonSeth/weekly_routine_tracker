@@ -6,11 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.Observer
-import androidx.lifecycle.OnLifecycleEvent
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.milchopenchev.weeklyexercisetracker.R
@@ -21,28 +17,24 @@ import features.addroutine.AddRoutineFragment
 import features.routinesadapter.RoutinesAdapter
 import features.routinesadapter.RoutinesAdapterMode
 import kotlinx.android.synthetic.main.show_routines_layout.view.*
-import mvi.MviView
+import mvi.Event
 import util.ExecutionGuard
 import util.getApplicationComponent
 import util.putObjectJson
-import javax.inject.Inject
 
-class ShowRoutinesFragment(@LayoutRes contentLayoutId: Int)
-    : Fragment(contentLayoutId),
-        MviView<ShowRoutinesIntent, ShowRoutinesViewState> {
+class ShowRoutinesFragment(@LayoutRes contentLayoutId: Int) : Fragment(contentLayoutId) {
     constructor() : this(0)
 
-    @Inject
-    lateinit var mviModel: ShowRoutinesModel
+    lateinit var viewModel: ShowRoutinesModel
 
-    private lateinit var viewModel: ShowRoutinesAndroidViewModel
-    private lateinit var mView: View
-    private val renderer = Observer<ShowRoutinesViewState> { intentGuard.runGuarding { render(it); } }
+    private val renderer = Observer<ShowRoutinesState> { render(it) }
+    private val eventHandler = Observer<Event<ShowRoutinesEvent>> { it.get()?.let { handle(it) } }
     private val intentGuard = ExecutionGuard()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        getApplicationComponent().inject(this)
+        viewModel = ViewModelProviders.of(this).get(ShowRoutinesModel::class.java)
+        getApplicationComponent().inject(viewModel)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -51,12 +43,9 @@ class ShowRoutinesFragment(@LayoutRes contentLayoutId: Int)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        mView = view
         view.all_routines_rv.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
-        viewModel = ViewModelProviders.of(this).get(ShowRoutinesAndroidViewModel::class.java)
-        mviModel.stateData.observe(this, renderer)
+        viewModel.observe(this, renderer, eventHandler)
         initIntentListeners()
-        render(ShowRoutinesViewState.Initial)
     }
 
     private fun initIntentListeners() {
@@ -75,13 +64,8 @@ class ShowRoutinesFragment(@LayoutRes contentLayoutId: Int)
             fun onPause() {
                 sendIntent(ShowRoutinesIntent.OnPausing)
             }
-
-            @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
-            fun onResume() {
-                sendIntent(ShowRoutinesIntent.OnResuming)
-            }
         })
-        mView.new_routine_button.setOnClickListener {
+        view?.new_routine_button?.setOnClickListener {
             sendIntent(ShowRoutinesIntent.AddNewRoutine)
         }
     }
@@ -92,39 +76,36 @@ class ShowRoutinesFragment(@LayoutRes contentLayoutId: Int)
     }
 
     fun sendIntent(intent: ShowRoutinesIntent) =
-        intentGuard.runIfFree { mviModel.postIntent(intent, viewModel.currentState) }
+        intentGuard.runIfFree { viewModel.postIntent(intent) }
 
-    override fun render(state: ShowRoutinesViewState) {
-        when {
-            state.addNewRoutine -> showNewRoutineFragment()
-            state.editRoutine != null -> showNewRoutineFragment(state.editRoutine)
-            else -> setupRecyclerView(state)
-
+    private fun handle(it: ShowRoutinesEvent) {
+        when (it) {
+            ShowRoutinesEvent.AddNewRoutine -> showNewRoutineFragment(null)
+            is ShowRoutinesEvent.EditRoutine -> showNewRoutineFragment(it.data)
         }
-        viewModel.currentState = state
     }
 
-    private fun setupRecyclerView(state: ShowRoutinesViewState) {
-        mView.all_routines_rv.adapter =
-                RoutinesAdapter(
-                        requireContext(),
-                        state.routinesList.routines.toList(),
-                        RoutinesAdapterMode.AllDisplay)
-                        .also {
-                            it.setOnItemLongClickListener { sendIntent(ShowRoutinesIntent.OnItemLongClick(it)) }
-                            it.setOnItemClickListener { sendIntent(ShowRoutinesIntent.OnItemClick(it)) }
-                        }
+    private fun render(state: ShowRoutinesState) = intentGuard.runGuarding {
+        view?.all_routines_rv?.adapter =
+            RoutinesAdapter(
+                requireContext(),
+                state.routinesList.routines.toList(),
+                RoutinesAdapterMode.AllDisplay)
+                .also {
+                    it.setOnItemLongClickListener { sendIntent(ShowRoutinesIntent.OnItemLongClick(it)) }
+                    it.setOnItemClickListener { sendIntent(ShowRoutinesIntent.OnItemClick(it)) }
+                }
     }
 
     private fun showNewRoutineFragment(routine: RoutineData? = null) {
         (context as? INavigationActivity)
-                ?.addFragment(getRoutineFragment(routine), AddRoutineFragment::class.java.simpleName)
+            ?.addFragment(getRoutineFragment(routine), AddRoutineFragment::class.java.simpleName)
     }
 
     private fun getRoutineFragment(routine: RoutineData?): Fragment =
-            AddRoutineFragment().also { fragment ->
-                routine?.let {
-                    fragment.arguments = Bundle().also { it.putObjectJson(AddRoutineFragment.ROUTINE_DATA, routine) }
-                }
+        AddRoutineFragment().also { fragment ->
+            routine?.let {
+                fragment.arguments = Bundle().also { it.putObjectJson(AddRoutineFragment.ROUTINE_DATA, routine) }
             }
+        }
 }
