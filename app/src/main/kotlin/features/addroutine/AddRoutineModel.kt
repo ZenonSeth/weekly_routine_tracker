@@ -2,6 +2,7 @@ package features.addroutine
 
 import data.RoutineData
 import enums.RepeatType
+import kotlinx.coroutines.runBlocking
 import mvi.MviModel
 import usecase.PutRoutineMemory
 import usecase.SaveRoutineMemoryToStorage
@@ -9,7 +10,7 @@ import javax.inject.Inject
 
 class AddRoutineModel : MviModel<AddRoutineIntent, AddRoutineState, AddRoutineEvent>() {
     @Inject lateinit var putRoutineMemory: PutRoutineMemory
-    @Inject lateinit var saverRoutineMemoryToStorage: SaveRoutineMemoryToStorage
+    @Inject lateinit var saveRoutineMemoryToStorage: SaveRoutineMemoryToStorage
     private var idCount = 0L
 
     override fun getInitialState() = AddRoutineState.Initial
@@ -73,8 +74,8 @@ class AddRoutineModel : MviModel<AddRoutineIntent, AddRoutineState, AddRoutineEv
         emitEvent { AddRoutineEvent.Finish }
     }
 
-    private fun handleUserLeft() {
-        saverRoutineMemoryToStorage()
+    private fun handleUserLeft() = runBlocking {
+        saveRoutineMemoryToStorage()
     }
 
     private fun getNewRoutineData(state: AddRoutineState): RoutineData =

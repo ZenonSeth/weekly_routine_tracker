@@ -1,13 +1,17 @@
 package mvi
 
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModel
+import androidx.arch.core.executor.ArchTaskExecutor
+import androidx.lifecycle.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import util.CoroutineDispatcherProvider
+import javax.inject.Inject
 
 abstract class MviModel<VIEW_INTENT, VIEW_STATE, MODEL_EVENT> : ViewModel() {
 
     abstract fun getInitialState(): VIEW_STATE
+
+    @Inject lateinit var dispatcher: CoroutineDispatcherProvider
 
     protected abstract fun handleIntent(intent: VIEW_INTENT)
     private val state = MutableLiveData<VIEW_STATE>()
@@ -20,12 +24,29 @@ abstract class MviModel<VIEW_INTENT, VIEW_STATE, MODEL_EVENT> : ViewModel() {
     }
 
     protected fun emitState(func: (VIEW_STATE) -> VIEW_STATE) {
-        state.value = func(currentState)
+        runOnMainIfNeeded { state.value = func(currentState) }
     }
 
     protected fun emitEvent(func: () -> MODEL_EVENT) {
-        event.value = Event(func())
+        runOnMainIfNeeded { event.value = Event(func()) }
     }
+
+    private fun runOnMainIfNeeded(block: () -> Unit) {
+        if (ArchTaskExecutor.getInstance().isMainThread) {
+            block()
+        } else {
+            runMain { block() }
+        }
+    }
+
+    protected fun runMain(block: suspend CoroutineScope.() -> Unit) =
+        viewModelScope.launch(context = dispatcher.main, block = block)
+
+    protected fun runComputation(block: suspend CoroutineScope.() -> Unit) =
+        viewModelScope.launch(context = dispatcher.computation, block = block)
+
+    protected fun runIo(block: suspend CoroutineScope.() -> Unit) =
+        viewModelScope.launch(context = dispatcher.io, block = block)
 
     fun postIntent(intent: VIEW_INTENT) = handleIntent(intent)
     fun observe(lifecycleOwner: LifecycleOwner,

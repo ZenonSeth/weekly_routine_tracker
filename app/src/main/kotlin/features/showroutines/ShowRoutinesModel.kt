@@ -1,5 +1,6 @@
 package features.showroutines
 
+import kotlinx.coroutines.runBlocking
 import mvi.MviModel
 import usecase.GetRoutinesMemory
 import usecase.LoadRoutineStorageIntoMemory
@@ -26,7 +27,7 @@ class ShowRoutinesModel : MviModel<ShowRoutinesIntent, ShowRoutinesState, ShowRo
         }
     }
 
-    private fun handleItemLongClick(intent: ShowRoutinesIntent.OnItemLongClick) {
+    private fun handleItemLongClick(intent: ShowRoutinesIntent.OnItemLongClick) = runIo {
         removeRoutineMemory(intent.data.id)
         emitState { (ShowRoutinesState(getRoutinesMemory())) }
     }
@@ -35,14 +36,14 @@ class ShowRoutinesModel : MviModel<ShowRoutinesIntent, ShowRoutinesState, ShowRo
         emitEvent { ShowRoutinesEvent.EditRoutine(intent.data) }
     }
 
-    private fun handleStartingUp() {
+    private fun handleStartingUp() = runIo {
         if (getRoutinesMemory().routines.isEmpty()) {
             loadRoutineStorageIntoMemory()
         }
         emitState { it.copy(routinesList = getRoutinesMemory()) }
     }
 
-    private fun handleShuttingDown() {
+    private fun handleShuttingDown() = runBlocking {
         saveRoutineMemoryToStorage()
     }
 

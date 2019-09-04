@@ -1,6 +1,7 @@
 package features.dailyroutine
 
 import data.RoutinesListData
+import kotlinx.coroutines.runBlocking
 import mvi.MviModel
 import usecase.*
 import javax.inject.Inject
@@ -25,14 +26,14 @@ class DailyRoutineModel: MviModel<DailyRoutineIntent, DailyRoutineState, DailyRo
         }
     }
 
-    private fun handleStartingUp() {
+    private fun handleStartingUp() = runIo {
         if (getRoutinesMemory().routines.isEmpty()) {
             loadRoutineStorageIntoMemory()
         }
         emitState { it.copy(routinesList = applyFilter(getRoutinesMemory())) }
     }
 
-    private fun handleShuttingDown() {
+    private fun handleShuttingDown() = runBlocking {
         resetRoutinesInMemory(System.currentTimeMillis())
         saveRoutineMemoryToStorage()
     }

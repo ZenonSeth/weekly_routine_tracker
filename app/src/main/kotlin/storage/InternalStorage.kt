@@ -7,12 +7,12 @@ import javax.inject.Singleton
 
 @Singleton
 class InternalStorage @Inject constructor(private val context: Context) {
-    fun writeToFile(filename: String, content: String) =
+    suspend fun writeToFile(filename: String, content: String) =
             context.openFileOutput(filename, Context.MODE_PRIVATE).use {
                 it.write(content.toByteArray())
             }
 
-    fun readFile(filename: String): String? {
+    suspend fun readFile(filename: String): String? {
         return try {
             context.openFileInput(filename).use {
                 String(it.readBytes())
@@ -22,7 +22,7 @@ class InternalStorage @Inject constructor(private val context: Context) {
         }
     }
 
-    fun removeFile(filename: String) =
+    suspend fun removeFile(filename: String) =
         context.deleteFile(filename)
 
 }
