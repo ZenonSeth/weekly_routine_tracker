@@ -1,21 +1,27 @@
 package mvi
 
 import androidx.arch.core.executor.ArchTaskExecutor
-import androidx.lifecycle.*
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import util.CoroutineDispatcherProvider
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 abstract class MviModel<VIEW_INTENT, VIEW_STATE, MODEL_EVENT> : ViewModel() {
 
     abstract fun getInitialState(): VIEW_STATE
 
-    @Inject lateinit var dispatcher: CoroutineDispatcherProvider
+    @Inject
+    lateinit var dispatcher: CoroutineDispatcherProvider
 
     protected abstract fun handleIntent(intent: VIEW_INTENT)
     private val state = MutableLiveData<VIEW_STATE>()
-    private val event = MutableLiveData<Event<MODEL_EVENT>>()
+    private val event = MutableLiveData<Consumable<MODEL_EVENT>>()
     protected val currentState
         get() = state.value ?: getInitialState()
 
@@ -28,7 +34,7 @@ abstract class MviModel<VIEW_INTENT, VIEW_STATE, MODEL_EVENT> : ViewModel() {
     }
 
     protected fun emitEvent(func: () -> MODEL_EVENT) {
-        runOnMainIfNeeded { event.value = Event(func()) }
+        runOnMainIfNeeded { event.value = Consumable(func()) }
     }
 
     private fun runOnMainIfNeeded(block: () -> Unit) {
@@ -51,13 +57,16 @@ abstract class MviModel<VIEW_INTENT, VIEW_STATE, MODEL_EVENT> : ViewModel() {
     fun postIntent(intent: VIEW_INTENT) = handleIntent(intent)
     fun observe(lifecycleOwner: LifecycleOwner,
                 stateObserver: Observer<VIEW_STATE>,
-                eventObserver: Observer<Event<MODEL_EVENT>>) {
+                eventObserver: Observer<Consumable<MODEL_EVENT>>) {
         state.observe(lifecycleOwner, stateObserver)
         event.observe(lifecycleOwner, eventObserver)
     }
 }
 
-class Event<T>(private val value: T) {
-    private var used = false
-    fun get(): T? = if (used) null else value.also { used = true }
+class Consumable<T>(private val value: T) {
+    private var used = AtomicBoolean(false)
+    fun consume(block: (T) -> Unit) {
+        if (used.compareAndSet(false, true))
+            block(value)
+    }
 }

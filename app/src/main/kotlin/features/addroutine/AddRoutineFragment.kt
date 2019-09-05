@@ -15,7 +15,7 @@ import enums.RepeatType
 import features.activity.IActionbarActivity
 import features.activity.INavigationActivity
 import kotlinx.android.synthetic.main.add_routine_layout.view.*
-import mvi.Event
+import mvi.Consumable
 import util.*
 
 class AddRoutineFragment(@LayoutRes contentLayoutId: Int) : Fragment(contentLayoutId) {
@@ -29,13 +29,14 @@ class AddRoutineFragment(@LayoutRes contentLayoutId: Int) : Fragment(contentLayo
     private lateinit var mView: View
 
     private val renderer = Observer<AddRoutineState> { render(it) }
-    private val eventHandler = Observer<Event<AddRoutineEvent>> { it.get()?.let { handle(it) } }
+    private val eventHandler = Observer<Consumable<AddRoutineEvent>> { it.consume { handle(it) } }
 
     private val intentGuard = ExecutionGuard()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(AddRoutineModel::class.java)
+        viewModel.observe(this, renderer, eventHandler)
         getApplicationComponent().inject(viewModel)
     }
 
@@ -46,8 +47,6 @@ class AddRoutineFragment(@LayoutRes contentLayoutId: Int) : Fragment(contentLayo
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         mView = view
-        viewModel = ViewModelProviders.of(this).get(AddRoutineModel::class.java)
-        viewModel.observe(this, renderer, eventHandler)
         initIntentListeners()
         setupInitialState()
     }

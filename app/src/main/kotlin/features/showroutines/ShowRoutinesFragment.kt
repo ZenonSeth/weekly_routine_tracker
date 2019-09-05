@@ -6,7 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.*
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.Observer
+import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.milchopenchev.weeklyexercisetracker.R
@@ -17,7 +21,7 @@ import features.addroutine.AddRoutineFragment
 import features.routinesadapter.RoutinesAdapter
 import features.routinesadapter.RoutinesAdapterMode
 import kotlinx.android.synthetic.main.show_routines_layout.view.*
-import mvi.Event
+import mvi.Consumable
 import util.ExecutionGuard
 import util.getApplicationComponent
 import util.putObjectJson
@@ -28,7 +32,7 @@ class ShowRoutinesFragment(@LayoutRes contentLayoutId: Int) : Fragment(contentLa
     lateinit var viewModel: ShowRoutinesModel
 
     private val renderer = Observer<ShowRoutinesState> { render(it) }
-    private val eventHandler = Observer<Event<ShowRoutinesEvent>> { it.get()?.let { handle(it) } }
+    private val eventHandler = Observer<Consumable<ShowRoutinesEvent>> { it.consume { handle(it) } }
     private val intentGuard = ExecutionGuard()
 
     override fun onCreate(savedInstanceState: Bundle?) {

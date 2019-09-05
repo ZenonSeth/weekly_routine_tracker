@@ -4,10 +4,8 @@ import android.os.Bundle
 import android.widget.CheckBox
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.MutableLiveData
 import application.RoutineApplication
 import com.google.gson.Gson
-import mvi.Event
 import java.util.concurrent.atomic.AtomicBoolean
 
 fun Fragment.getApplicationComponent() =

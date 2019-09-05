@@ -6,7 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.*
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.Observer
+import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.milchopenchev.weeklyexercisetracker.R
@@ -16,7 +20,7 @@ import features.routinesadapter.RoutinesAdapter
 import features.routinesadapter.RoutinesAdapterMode
 import features.showroutines.ShowRoutinesFragment
 import kotlinx.android.synthetic.main.daily_routine_layout.view.*
-import mvi.Event
+import mvi.Consumable
 import util.ExecutionGuard
 import util.getApplicationComponent
 
@@ -27,13 +31,7 @@ class DailyRoutineFragment(@LayoutRes contentLayoutId: Int) : Fragment(contentLa
 
     private val intentGuard = ExecutionGuard()
     private val renderer = Observer<DailyRoutineState> { render(it) }
-    private val eventHandler = Observer<Event<DailyRoutineEvent>> {
-        intentGuard.runGuarding {
-            it
-                .get()
-                ?.let { handle(it) }
-        }
-    }
+    private val eventHandler = Observer<Consumable<DailyRoutineEvent>> { it.consume { handle(it) } }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
