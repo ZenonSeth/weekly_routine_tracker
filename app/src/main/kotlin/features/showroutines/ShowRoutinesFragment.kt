@@ -52,10 +52,6 @@ class ShowRoutinesFragment : Fragment(R.layout.show_routines_layout) {
                 sendIntent(ShowRoutinesIntent.OnStartingUp)
             }
 
-            @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
-            fun onPause() {
-                sendIntent(ShowRoutinesIntent.OnPausing)
-            }
         })
         view?.new_routine_button?.setOnClickListener {
             sendIntent(ShowRoutinesIntent.AddNewRoutine)

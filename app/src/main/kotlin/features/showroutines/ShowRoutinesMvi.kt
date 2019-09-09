@@ -5,7 +5,6 @@ import data.RoutinesListData
 
 sealed class ShowRoutinesIntent {
     object OnStartingUp : ShowRoutinesIntent()
-    object OnPausing : ShowRoutinesIntent()
     object OnShuttingDown : ShowRoutinesIntent()
     object AddNewRoutine : ShowRoutinesIntent()
     class OnItemLongClick(val data: RoutineData) : ShowRoutinesIntent()
@@ -14,7 +13,7 @@ sealed class ShowRoutinesIntent {
 
 sealed class ShowRoutinesEvent {
     object AddNewRoutine: ShowRoutinesEvent()
-    class EditRoutine(val data: RoutineData): ShowRoutinesEvent()
+    data class EditRoutine(val data: RoutineData): ShowRoutinesEvent()
 }
 
 data class ShowRoutinesState(val routinesList: RoutinesListData) {
