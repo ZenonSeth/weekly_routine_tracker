@@ -1,16 +1,9 @@
 package features.dailyroutine
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.Observer
-import androidx.lifecycle.OnLifecycleEvent
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.milchopenchev.weeklyexercisetracker.R
@@ -24,8 +17,7 @@ import mvi.Consumable
 import util.ExecutionGuard
 import util.getApplicationComponent
 
-class DailyRoutineFragment(@LayoutRes contentLayoutId: Int) : Fragment(contentLayoutId) {
-    constructor() : this(0)
+class DailyRoutineFragment : Fragment(R.layout.daily_routine_layout) {
 
     lateinit var viewModel: DailyRoutineModel
 
@@ -36,17 +28,13 @@ class DailyRoutineFragment(@LayoutRes contentLayoutId: Int) : Fragment(contentLa
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(DailyRoutineModel::class.java)
-        getApplicationComponent().inject(viewModel)
-    }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.daily_routine_layout, container, false)
+            .also { getApplicationComponent().inject(it) }
+        viewModel.observe(this, renderer, eventHandler)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         view.daily_routines_rv.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
-        viewModel.observe(this, renderer, eventHandler)
         initIntentListeners()
     }
 

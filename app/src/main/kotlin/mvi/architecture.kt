@@ -1,14 +1,10 @@
 package mvi
 
-import androidx.arch.core.executor.ArchTaskExecutor
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import util.CoroutineDispatcherProvider
+import util.MainThreadChecker
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
@@ -16,18 +12,14 @@ abstract class MviModel<VIEW_INTENT, VIEW_STATE, MODEL_EVENT> : ViewModel() {
 
     abstract fun getInitialState(): VIEW_STATE
 
-    @Inject
-    lateinit var dispatcher: CoroutineDispatcherProvider
+    @Inject lateinit var dispatcher: CoroutineDispatcherProvider
+    @Inject lateinit var mainThreadChecker: MainThreadChecker
 
     protected abstract fun handleIntent(intent: VIEW_INTENT)
     private val state = MutableLiveData<VIEW_STATE>()
     private val event = MutableLiveData<Consumable<MODEL_EVENT>>()
     protected val currentState
         get() = state.value ?: getInitialState()
-
-    init {
-        emitState { getInitialState() }
-    }
 
     protected fun emitState(func: (VIEW_STATE) -> VIEW_STATE) {
         runOnMainIfNeeded { state.value = func(currentState) }
@@ -38,7 +30,7 @@ abstract class MviModel<VIEW_INTENT, VIEW_STATE, MODEL_EVENT> : ViewModel() {
     }
 
     private fun runOnMainIfNeeded(block: () -> Unit) {
-        if (ArchTaskExecutor.getInstance().isMainThread) {
+        if (mainThreadChecker.isMainThread()) {
             block()
         } else {
             runMain { block() }
@@ -58,8 +50,15 @@ abstract class MviModel<VIEW_INTENT, VIEW_STATE, MODEL_EVENT> : ViewModel() {
     fun observe(lifecycleOwner: LifecycleOwner,
                 stateObserver: Observer<VIEW_STATE>,
                 eventObserver: Observer<Consumable<MODEL_EVENT>>) {
+        ensureState()
         state.observe(lifecycleOwner, stateObserver)
         event.observe(lifecycleOwner, eventObserver)
+    }
+
+    private fun ensureState() {
+        if (state.value == null) {
+            emitState { getInitialState() }
+        }
     }
 }
 

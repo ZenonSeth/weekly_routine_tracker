@@ -35,6 +35,9 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     testImplementation 'junit:junit:4.12'
+    testImplementation "io.mockk:mockk:$mockk_version"
+    testImplementation "android.arch.core:core-testing:$lifecycle_version"
+
     implementation "androidx.lifecycle:lifecycle-viewmodel:$lifecycle_version"
     implementation "android.arch.lifecycle:extensions:$lifecycleextensions_version"
     implementation "com.android.support.constraint:constraint-layout:$constraintlayout_version"

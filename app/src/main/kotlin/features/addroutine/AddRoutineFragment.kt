@@ -1,10 +1,7 @@
 package features.addroutine
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import androidx.annotation.LayoutRes
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
@@ -18,8 +15,7 @@ import kotlinx.android.synthetic.main.add_routine_layout.view.*
 import mvi.Consumable
 import util.*
 
-class AddRoutineFragment(@LayoutRes contentLayoutId: Int) : Fragment(contentLayoutId) {
-    constructor() : this(0)
+class AddRoutineFragment : Fragment(R.layout.add_routine_layout) {
 
     companion object {
         const val ROUTINE_DATA = "routine_data"
@@ -36,12 +32,8 @@ class AddRoutineFragment(@LayoutRes contentLayoutId: Int) : Fragment(contentLayo
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(AddRoutineModel::class.java)
+            .also { getApplicationComponent().inject(it) }
         viewModel.observe(this, renderer, eventHandler)
-        getApplicationComponent().inject(viewModel)
-    }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        return inflater.inflate(R.layout.add_routine_layout, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
