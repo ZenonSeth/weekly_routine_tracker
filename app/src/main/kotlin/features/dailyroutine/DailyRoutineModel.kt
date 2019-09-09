@@ -30,6 +30,7 @@ class DailyRoutineModel: MviModel<DailyRoutineIntent, DailyRoutineState, DailyRo
         if (getRoutinesMemory().routines.isEmpty()) {
             loadRoutineStorageIntoMemory()
         }
+        resetRoutinesInMemory(System.currentTimeMillis())
         emitState { it.copy(routinesList = applyFilter(getRoutinesMemory())) }
     }
 
