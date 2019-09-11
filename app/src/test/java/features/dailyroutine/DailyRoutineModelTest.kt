@@ -8,11 +8,7 @@ import enums.RepeatType
 import features.util.BaseModelTest
 import features.util.TestObserver
 import features.util.valueOrNull
-import io.mockk.MockKAnnotations
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
-import kotlinx.coroutines.runBlocking
+import io.mockk.*
 import mvi.Consumable
 import org.junit.Before
 import org.junit.Test
@@ -52,22 +48,22 @@ class DailyRoutineModelTest : BaseModelTest() {
     @Test
     fun `routines are loaded from disk if memory is empty on startup`() {
         model.postIntent(DailyRoutineIntent.OnStartingUp)
-        verify(exactly = 1) { runBlocking { model.loadRoutineStorageIntoMemory.invoke() } }
+        coVerify(exactly = 1) { model.loadRoutineStorageIntoMemory.invoke() }
     }
 
     @Test
     fun `routines reset in memory when starting up`() {
         model.postIntent(DailyRoutineIntent.OnStartingUp)
-        verify(exactly = 1) { runBlocking { model.resetRoutinesInMemory.invoke(any()) } }
+        verify(exactly = 1) { model.resetRoutinesInMemory.invoke(any()) }
     }
 
     @Test
-    fun `filtered routines are displayed when memory is popuated on starting up`() {
+    fun `filtered routines are displayed when memory is populated on starting up`() {
         val data = getRoutinesListData()
         val item = data.routines.toList()[0]
         every { model.getRoutinesMemory.invoke() }.answers { data }
         every { model.filterRoutines.invoke(any(), any()) }
-            .answers{
+            .answers {
                 RoutinesListData((invocation.args[0] as RoutinesListData).routines.minus(item))
             }
 
@@ -82,8 +78,8 @@ class DailyRoutineModelTest : BaseModelTest() {
     @Test
     fun `routines reset in memory and written to disk when shutting down`() {
         model.postIntent(DailyRoutineIntent.OnShuttingDown)
-        verify(exactly = 1) { runBlocking { model.resetRoutinesInMemory.invoke(any()) } }
-        verify(exactly = 1) { runBlocking { model.saveRoutineMemoryToStorage.invoke() } }
+        verify(exactly = 1) { model.resetRoutinesInMemory.invoke(any()) }
+        coVerify(exactly = 1) { model.saveRoutineMemoryToStorage.invoke() }
     }
 
     @Test

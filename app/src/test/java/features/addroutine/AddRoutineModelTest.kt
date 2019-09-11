@@ -8,9 +8,9 @@ import features.util.BaseModelTest
 import features.util.TestObserver
 import features.util.valueOrNull
 import io.mockk.MockKAnnotations
+import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.runBlocking
 import mvi.Consumable
 import org.junit.Before
 import org.junit.Test
@@ -37,7 +37,7 @@ class AddRoutineModelTest : BaseModelTest() {
         model.postIntent(AddRoutineIntent.CancelledClicked)
 
         verify(exactly = 0) { model.putRoutineMemory.invoke(any()) }
-        verify(exactly = 0) { runBlocking { model.saveRoutineMemoryToStorage.invoke() } }
+        coVerify(exactly = 0) { model.saveRoutineMemoryToStorage.invoke() }
         check(eventObserver.values().size == 1)
         check(eventObserver.latest()?.valueOrNull() is AddRoutineEvent.Finish)
     }
@@ -55,7 +55,7 @@ class AddRoutineModelTest : BaseModelTest() {
     fun `routines are saved when user exits`() {
         model.postIntent(AddRoutineIntent.OnUserLeaving)
 
-        verify(exactly = 1) { runBlocking { model.saveRoutineMemoryToStorage.invoke() } }
+        coVerify(exactly = 1) { model.saveRoutineMemoryToStorage.invoke() }
     }
 
     @Test

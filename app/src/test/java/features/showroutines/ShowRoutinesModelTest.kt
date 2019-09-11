@@ -7,11 +7,7 @@ import enums.RepeatType
 import features.util.BaseModelTest
 import features.util.TestObserver
 import features.util.valueOrNull
-import io.mockk.MockKAnnotations
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
-import kotlinx.coroutines.runBlocking
+import io.mockk.*
 import mvi.Consumable
 import org.junit.Before
 import org.junit.Test
@@ -40,14 +36,14 @@ class ShowRoutinesModelTest : BaseModelTest() {
         every { model.getRoutinesMemory.invoke() }.answers { RoutinesListData() }
         model.postIntent(ShowRoutinesIntent.OnStartingUp)
 
-        verify(exactly = 1) { runBlocking { model.loadRoutineStorageIntoMemory.invoke() } }
+        coVerify(exactly = 1) { model.loadRoutineStorageIntoMemory.invoke() }
     }
 
     @Test
     fun `routines are saved to disk when user leaving`() {
         model.postIntent(ShowRoutinesIntent.OnShuttingDown)
 
-        verify(exactly = 1) { runBlocking { model.saveRoutineMemoryToStorage.invoke() } }
+        coVerify(exactly = 1) { model.saveRoutineMemoryToStorage.invoke() }
     }
 
     @Test
