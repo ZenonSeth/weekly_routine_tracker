@@ -9,7 +9,6 @@ import kotlinx.coroutines.Dispatchers
 import mvi.MviModel
 import org.junit.Rule
 import util.CoroutineDispatcherProvider
-import util.MainThreadChecker
 
 abstract class BaseModelTest {
     @get:Rule
@@ -22,6 +21,5 @@ abstract class BaseModelTest {
         every { lifecycleOwner.lifecycle }.answers { lifecycleRegistry }
         model.dispatcher =
             CoroutineDispatcherProvider(Dispatchers.Unconfined, Dispatchers.Unconfined, Dispatchers.Unconfined)
-        model.mainThreadChecker = MainThreadChecker(true)
     }
 }

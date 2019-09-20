@@ -1,10 +1,10 @@
 package mvi
 
+import androidx.arch.core.executor.ArchTaskExecutor
 import androidx.lifecycle.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import util.CoroutineDispatcherProvider
-import util.MainThreadChecker
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
@@ -13,7 +13,6 @@ abstract class MviModel<VIEW_INTENT, VIEW_STATE, MODEL_EVENT> : ViewModel() {
     abstract fun getInitialState(): VIEW_STATE
 
     @Inject lateinit var dispatcher: CoroutineDispatcherProvider
-    @Inject lateinit var mainThreadChecker: MainThreadChecker
 
     protected abstract fun handleIntent(intent: VIEW_INTENT)
     private val state = MutableLiveData<VIEW_STATE>()
@@ -30,12 +29,14 @@ abstract class MviModel<VIEW_INTENT, VIEW_STATE, MODEL_EVENT> : ViewModel() {
     }
 
     private fun runOnMainIfNeeded(block: () -> Unit) {
-        if (mainThreadChecker.isMainThread()) {
+        if (isMainThread()) {
             block()
         } else {
             runMain { block() }
         }
     }
+
+    private fun isMainThread() = ArchTaskExecutor.getInstance().isMainThread
 
     protected fun runMain(block: suspend CoroutineScope.() -> Unit) =
         viewModelScope.launch(context = dispatcher.main, block = block)
